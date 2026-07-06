@@ -16,9 +16,13 @@ export function computeProbability(event: EventInput, scores: FactorScore[]): An
   let usedWeight = 0;
   const totalWeight = playbook.factors.reduce((s, f) => s + f.weight, 0);
 
+  const seen = new Set<string>();
   for (const fs of scores) {
+    if (!Number.isFinite(fs.score)) continue;
+    if (seen.has(fs.key)) continue;
     const spec = playbook.factors.find((f) => f.key === fs.key);
     if (!spec) continue;
+    seen.add(fs.key);
     weighted += spec.weight * clamp(fs.score, -1, 1);
     usedWeight += spec.weight;
   }

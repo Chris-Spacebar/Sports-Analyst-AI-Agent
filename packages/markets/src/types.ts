@@ -15,8 +15,10 @@ export interface MarketListing {
 }
 
 export interface ScanOptions {
-  /** Lowercase keywords; a listing matches if its title contains any. */
+  /** Lowercase keywords; a listing matches if its title contains any (whole word). */
   keywords?: string[];
+  /** Listings matching any of these are always dropped (e.g. "poker", "darts"). */
+  excludeKeywords?: string[];
   limit?: number;
 }
 

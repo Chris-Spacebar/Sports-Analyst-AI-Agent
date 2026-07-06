@@ -4,6 +4,7 @@ import { polymarket } from "./polymarket.js";
 import { hyperliquid } from "./hyperliquid.js";
 
 export * from "./types.js";
+export * from "./match.js";
 export { kalshi, polymarket, hyperliquid };
 
 const ADAPTERS: Record<Venue, VenueAdapter> = { kalshi, polymarket, hyperliquid };

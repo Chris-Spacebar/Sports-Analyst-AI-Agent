@@ -1,6 +1,7 @@
 import { checkGuardrails, type AgentSettings, type OrderIntent } from "./guardrails.js";
 
 export * from "./guardrails.js";
+export * from "./settings.js";
 
 /**
  * Order execution layer — INTENTIONALLY NOT IMPLEMENTED in the scaffold.

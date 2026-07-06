@@ -52,18 +52,28 @@ export async function analyzeWithClaude(
     },
     body: JSON.stringify({
       model: "claude-sonnet-5",
-      max_tokens: 2000,
+      // Adaptive thinking is on by default and shares this budget with the answer.
+      max_tokens: 16000,
       messages: [{ role: "user", content: prompt }]
     })
   });
   if (!res.ok) throw new Error(`Anthropic API error ${res.status}: ${await res.text()}`);
 
-  const data = (await res.json()) as { content: Array<{ type: string; text?: string }> };
+  const data = (await res.json()) as {
+    content: Array<{ type: string; text?: string }>;
+    stop_reason?: string;
+  };
+  if (data.stop_reason === "max_tokens") {
+    throw new Error("Model response truncated (stop_reason max_tokens) — increase max_tokens");
+  }
   const text = data.content.find((b) => b.type === "text")?.text ?? "";
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Model did not return JSON");
 
   const parsed = JSON.parse(jsonMatch[0]) as { factorScores: FactorScore[]; narrative?: string };
+  if (!Array.isArray(parsed.factorScores)) {
+    throw new Error("Model response is missing a factorScores array");
+  }
   const analysis = computeProbability(event, parsed.factorScores);
   analysis.narrative = parsed.narrative;
   return analysis;

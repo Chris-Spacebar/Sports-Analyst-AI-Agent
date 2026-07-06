@@ -22,8 +22,10 @@ export interface SportPlaybook {
   sport: Sport;
   phase: Phase;
   leagues: string[];
-  /** Lowercase keywords used to match prediction-market titles to this sport. */
+  /** Lowercase keywords used to match prediction-market titles to this sport (whole-word match). */
   keywords: string[];
+  /** Titles matching any of these are never classified as this sport (e.g. "poker" for baseball's "world series"). */
+  excludeKeywords?: string[];
   factors: FactorSpec[];
   researchChecklist: string[];
 }

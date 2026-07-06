@@ -4,7 +4,10 @@ export const nfl: SportPlaybook = {
   sport: "american_football",
   phase: 1,
   leagues: ["NFL", "NCAA Football"],
-  keywords: ["nfl", "super bowl", "touchdown", "quarterback", "ncaaf", "college football"],
+  // "pro football" is Kalshi's NFL naming (e.g. "Dallas vs Seattle Pro Football game").
+  keywords: ["nfl", "super bowl", "touchdown", "quarterback", "ncaaf", "college football", "pro football"],
+  // "super bowl" alone also matches halftime-show music markets.
+  excludeKeywords: ["halftime", "headline", "headliner"],
   factors: [
     { key: "qb", label: "Quarterback play", weight: 1.0, description: "Starting QB status, EPA/play, pressure-to-sack rate, backup risk" },
     { key: "form", label: "Team form and efficiency", weight: 0.9, description: "DVOA/EPA rankings, last 5 games, point differential, strength of schedule" },

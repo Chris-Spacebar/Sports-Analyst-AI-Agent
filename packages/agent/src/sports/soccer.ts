@@ -4,7 +4,13 @@ export const soccer: SportPlaybook = {
   sport: "soccer",
   phase: 1,
   leagues: ["FIFA World Cup", "Premier League", "Champions League", "La Liga", "MLS"],
-  keywords: ["soccer", "football club", "world cup", "premier league", "champions league", "la liga", "fifa", "mls", " fc ", "uefa"],
+  // "fifa world cup"/"club world cup" instead of the bare "world cup": FIBA/Rugby/Cricket
+  // World Cup titles must not be classified as soccer. "world cup game" is Kalshi's
+  // series naming for FIFA World Cup fixtures.
+  keywords: ["soccer", "football club", "fifa world cup", "club world cup", "world cup game", "premier league", "champions league", "la liga", "fifa", "mls", "fc", "uefa"],
+  // "premier league" alone also matches Indian Premier League cricket and Premier League
+  // Darts; "fc"/"world cup" also surface EA Sports FC esports and world-cup song markets.
+  excludeKeywords: ["cricket", "darts", "indian premier league", "esports", "song", "rugby"],
   factors: [
     { key: "form", label: "Recent form and results", weight: 0.9, description: "Last 5-10 competitive results, goals for/against, xG trend, quality of opposition faced" },
     { key: "squad", label: "Squad quality gap", weight: 1.0, description: "FIFA/Elo ranking gap, market value of XI, depth on the bench" },

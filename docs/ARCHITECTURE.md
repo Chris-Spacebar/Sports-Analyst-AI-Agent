@@ -39,6 +39,6 @@
 ## Known scaffold limitations (intentional)
 
 - Settings are in-memory (reset on redeploy) — wire to Vercel KV/Supabase in Step 2
-- Hyperliquid HIP-4 adapter is a stub pending spec verification
+- Hyperliquid HIP-4 listings carry no volume/liquidity data (that would need one l2Book call per outcome), so they bypass the minLiquidity scan filter
 - No database yet for analysis history / track record
 - `submitOrder()` throws — implement per-venue signing only when you reach Step 3-4

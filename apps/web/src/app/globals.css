@@ -68,3 +68,4 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   border: 1px solid var(--gold); color: var(--gold);
   border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px;
 }
+.banner.error { border-color: var(--red); color: var(--red); }

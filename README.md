@@ -24,8 +24,8 @@ docs/                Architecture, phase roadmap, setup guide
 
 ```bash
 npm install
-cp .env.example .env   # fill in what you have; everything is optional for analysis mode
-npm run dev            # http://localhost:3000
+cp .env.example apps/web/.env   # Next.js loads env from apps/web; everything is optional for analysis mode
+npm run dev                     # http://localhost:3000
 ```
 
 ## Deploy

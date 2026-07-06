@@ -16,8 +16,8 @@ git push -u origin main
 
 ```bash
 npm install
-cp .env.example .env
-npm run dev        # http://localhost:3000
+cp .env.example apps/web/.env   # Next.js only loads env files from the app directory
+npm run dev                     # http://localhost:3000
 ```
 
 Everything works with zero keys in analysis mode. Add `ANTHROPIC_API_KEY` to enable AI-scored analyses via `/api/analyze`.
@@ -38,7 +38,7 @@ Everything works with zero keys in analysis mode. Add `ANTHROPIC_API_KEY` to ena
 | Polymarket | Wallet with USDC on Polygon + CLOB API creds | US access restrictions apply — check your jurisdiction |
 | Hyperliquid | Main wallet + a delegated API wallet | Use the API wallet only; never expose your main private key |
 
-Key rules: keys live ONLY in `.env` locally and Vercel env vars in production. Never commit them. Fund trading wallets with only what you can afford to lose.
+Key rules: keys live ONLY in `apps/web/.env` locally and Vercel env vars in production. Never commit them. Fund trading wallets with only what you can afford to lose.
 
 ## 5. Persistence (Step 2 of the roadmap)
 
@@ -52,6 +52,6 @@ Replace `apps/web/src/lib/settingsStore.ts` with a KV-backed version — the int
 ## 6. Semi-auto → auto (Steps 3-4)
 
 1. Implement venue signing in `packages/execution/src/index.ts` (`submitOrder`)
-2. Keep `AGENT_MODE=semi_auto` — every order requires your click in the UI
+2. Keep `AGENT_MODE=semi_auto` — the env var sets the boot-time default mode (the Settings UI can change it at runtime); every order requires your click in the UI
 3. Only after a verified track record, set `AGENT_MODE=auto` AND `EXECUTION_ENABLED=true`
 4. The kill switch in Settings overrides everything at any time

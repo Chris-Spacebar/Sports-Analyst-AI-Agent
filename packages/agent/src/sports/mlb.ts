@@ -5,6 +5,7 @@ export const mlb: SportPlaybook = {
   phase: 1,
   leagues: ["MLB", "KBO", "NPB", "World Baseball Classic"],
   keywords: ["mlb", "baseball", "kbo", "npb", "world series", "home run"],
+  excludeKeywords: ["poker"],
   factors: [
     { key: "pitching", label: "Starting pitcher matchup", weight: 1.0, description: "Both starters' recent xFIP/SIERA, pitch mix vs opposing lineup, times-through-order, workload" },
     { key: "bullpen", label: "Bullpen state", weight: 0.8, description: "Bullpen usage last 3 days, high-leverage arm availability, bullpen xFIP rankings" },

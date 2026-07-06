@@ -17,11 +17,18 @@ export function getPlaybook(sport: Sport): SportPlaybook | undefined {
   return PLAYBOOKS.find((p) => p.sport === sport);
 }
 
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Whole-word keyword match, so "kbo" does not match "kickboxing". */
+export function keywordMatches(text: string, keyword: string): boolean {
+  return new RegExp(`\\b${escapeRegExp(keyword.trim())}\\b`).test(text.toLowerCase());
+}
+
 /** Match a market title to a sport using playbook keywords. */
 export function detectSport(title: string): Sport | undefined {
-  const t = ` ${title.toLowerCase()} `;
   for (const p of PLAYBOOKS) {
-    if (p.keywords.some((k) => t.includes(k))) return p.sport;
+    if (p.excludeKeywords?.some((k) => keywordMatches(title, k))) continue;
+    if (p.keywords.some((k) => keywordMatches(title, k))) return p.sport;
   }
   return undefined;
 }

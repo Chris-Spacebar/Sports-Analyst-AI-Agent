@@ -21,9 +21,19 @@ export async function GET(req: Request) {
   }
 
   const settings = getSettings();
-  const keywords = PLAYBOOKS.filter((p) => settings.sportsEnabled.includes(p.sport))
-    .flatMap((p) => p.keywords);
-  const { listings, errors } = await scanAll(settings.venuesEnabled as Venue[], { keywords, limit: 200 });
+  const enabled = PLAYBOOKS.filter((p) => settings.sportsEnabled.includes(p.sport));
+  const keywords = enabled.flatMap((p) => p.keywords);
+  const excludeKeywords = enabled.flatMap((p) => p.excludeKeywords ?? []);
+
+  // Empty keyword list = "no filter" to the adapters — with no sports enabled, scan nothing.
+  if (keywords.length === 0) {
+    return NextResponse.json({ ok: true, scannedAt: new Date().toISOString(), totalListings: 0, bySport: {}, errors: {} });
+  }
+
+  const { listings: rawListings, errors } = await scanAll(settings.venuesEnabled as Venue[], { keywords, excludeKeywords, limit: 200 });
+  const listings = rawListings.filter(
+    (l) => (l.liquidity == null && l.volume == null) || Math.max(l.liquidity ?? 0, l.volume ?? 0) >= settings.minLiquidity
+  );
 
   const bySport: Record<string, number> = {};
   for (const l of listings) {

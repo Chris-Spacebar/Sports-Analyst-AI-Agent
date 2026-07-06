@@ -44,6 +44,8 @@ export interface OrderIntent {
   limitPrice: number; // 0..1
   edge: number;
   confidence: number;
+  /** Liquidity (or volume, whichever the venue reports) of the market, USD. */
+  marketLiquidityUsd: number;
 }
 
 export interface GuardrailResult {
@@ -61,11 +63,20 @@ export function checkGuardrails(
   if (settings.killSwitch) reasons.push("Kill switch is ON");
   if (settings.mode === "analysis") reasons.push("Mode is analysis-only");
   if (!settings.venuesEnabled.includes(intent.venue)) reasons.push(`Venue ${intent.venue} not enabled`);
-  if (intent.edge < settings.minEdge) reasons.push(`Edge ${intent.edge} below minimum ${settings.minEdge}`);
-  if (intent.confidence < settings.minConfidence) reasons.push(`Confidence ${intent.confidence} below minimum ${settings.minConfidence}`);
-  if (intent.stakeUsd > settings.maxStakePerMarket) reasons.push(`Stake exceeds per-market cap $${settings.maxStakePerMarket}`);
-  if (state.openExposureUsd + intent.stakeUsd > settings.maxTotalExposure) reasons.push(`Would exceed total exposure cap $${settings.maxTotalExposure}`);
-  if (state.realizedPnlTodayUsd <= -settings.dailyLossLimit) reasons.push(`Daily loss limit $${settings.dailyLossLimit} reached`);
-  if (intent.limitPrice <= 0 || intent.limitPrice >= 1) reasons.push("Limit price must be between 0 and 1");
+  // NaN slips through every < / > comparison below, so reject non-finite numbers explicitly.
+  if (!Number.isFinite(intent.edge)) reasons.push("Edge must be a finite number");
+  else if (intent.edge < settings.minEdge) reasons.push(`Edge ${intent.edge} below minimum ${settings.minEdge}`);
+  if (!Number.isFinite(intent.confidence)) reasons.push("Confidence must be a finite number");
+  else if (intent.confidence < settings.minConfidence) reasons.push(`Confidence ${intent.confidence} below minimum ${settings.minConfidence}`);
+  if (!Number.isFinite(intent.stakeUsd) || intent.stakeUsd <= 0) reasons.push("Stake must be a positive finite USD amount");
+  else if (intent.stakeUsd > settings.maxStakePerMarket) reasons.push(`Stake exceeds per-market cap $${settings.maxStakePerMarket}`);
+  if (!Number.isFinite(state.openExposureUsd)) reasons.push("Open exposure must be a finite number");
+  else if (state.openExposureUsd + intent.stakeUsd > settings.maxTotalExposure) reasons.push(`Would exceed total exposure cap $${settings.maxTotalExposure}`);
+  if (!Number.isFinite(state.realizedPnlTodayUsd)) reasons.push("Realized PnL must be a finite number");
+  else if (state.realizedPnlTodayUsd <= -settings.dailyLossLimit) reasons.push(`Daily loss limit $${settings.dailyLossLimit} reached`);
+  if (!Number.isFinite(intent.marketLiquidityUsd) || intent.marketLiquidityUsd < settings.minLiquidity) {
+    reasons.push(`Market liquidity $${intent.marketLiquidityUsd} below minimum $${settings.minLiquidity}`);
+  }
+  if (!Number.isFinite(intent.limitPrice) || intent.limitPrice <= 0 || intent.limitPrice >= 1) reasons.push("Limit price must be between 0 and 1");
   return { allowed: reasons.length === 0, reasons };
 }
