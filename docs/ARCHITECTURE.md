@@ -38,6 +38,8 @@
 
 ## Known scaffold limitations (intentional)
 
+- The trading-agent Settings UI was removed from the interface (analysis is the product; trading is secondary). `packages/execution`, the settings store, and `/api/settings` stay dormant for when execution returns.
+- Community theses/comments persist in browser localStorage only — `ThesisRepository` (apps/web/src/lib/thesisStore.ts) is the interface a Supabase implementation will replace.
 - Settings are in-memory (reset on redeploy) — wire to Vercel KV/Supabase in Step 2
 - Hyperliquid HIP-4 listings carry no volume/liquidity data (that would need one l2Book call per outcome), so they bypass the minLiquidity scan filter
 - No database yet for analysis history / track record

@@ -1,6 +1,17 @@
 # Phase roadmap
 
-The agent specializes in all types of sport over four phases. Each phase = new playbook files in `packages/agent/src/sports/` plus new keywords. The engine, market adapters, UI, and guardrails never change.
+The platform's primary axis is the **community research loop**: the founder publishes research → readers discuss on event pages → users publish their own theses → every pick is graded against settled markets into public track records. New sports are added when the founder actually covers an event in them, not speculatively.
+
+## Community-loop phases
+
+1. **Publish (now)** — founder reports as a content collection (`apps/web/src/content/reports/`, converted from the founder's workbook); event hub pages; picks graded as markets settle.
+2. **Contribute (now, local preview)** — thesis composer and per-event discussion shipped against a local store; the `ThesisRepository` interface in `apps/web/src/lib/thesisStore.ts` is the seam where Supabase lands.
+3. **Accounts + track records** — auth, cloud persistence, immutable timestamped picks, author profiles with auto-graded scorecards, settlement detection in the cron scan.
+4. **Community depth** — follows, digests, counter-theses, referencing/citation, leaderboards.
+
+## Sport-coverage phases (secondary axis)
+
+Each sport = a playbook file in `packages/agent/src/sports/` plus keywords. The engine, market adapters, and UI never change.
 
 ## Phase 1 — NOW (shipped in this scaffold)
 

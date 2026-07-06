@@ -69,3 +69,97 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px;
 }
 .banner.error { border-color: var(--red); color: var(--red); }
+
+a.market-card { display: block; color: inherit; }
+a.market-card:hover { border-color: var(--accent); }
+
+.outcome-preview { list-style: none; margin: 8px 0; padding: 0; }
+.outcome-preview li {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 3px 0; font-size: 14px; border-bottom: 1px dashed var(--border);
+}
+.price-sm { font-weight: 700; }
+
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; margin-top: 16px; }
+
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+.table th, .table td {
+  text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.table th { color: var(--muted); font-weight: 600; }
+.table tbody tr:hover { background: rgba(79, 140, 255, 0.06); }
+.row-active { background: rgba(79, 140, 255, 0.12); }
+.cell-label { color: var(--muted); white-space: nowrap; }
+
+.side-toggle { display: flex; gap: 8px; }
+.side-btn {
+  flex: 1; margin-top: 0; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border);
+}
+.side-btn.active { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+.edge-pos { color: var(--green); font-size: 13px; }
+.edge-neg { color: var(--red); font-size: 13px; }
+
+.verdict { border-radius: 8px; padding: 10px 14px; margin-top: 12px; font-size: 13px; border: 1px solid; }
+.verdict ul { margin: 6px 0 0; padding-left: 18px; }
+.verdict-blocked { border-color: var(--red); color: var(--red); }
+.verdict-awaiting_approval { border-color: var(--gold); color: var(--gold); }
+.verdict-would_submit { border-color: var(--green); color: var(--green); }
+
+.button-link {
+  display: inline-block; background: var(--accent); color: white;
+  border-radius: 8px; padding: 10px 18px; font-weight: 600;
+}
+.button-link:hover { opacity: 0.9; }
+
+.match-details { border-bottom: 1px solid var(--border); padding: 8px 0; }
+.match-details summary { cursor: pointer; font-size: 14px; }
+.match-details summary:hover { color: var(--accent); }
+
+.wallet-btn {
+  margin: 0; padding: 6px 14px; font-size: 13px;
+  background: transparent; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 999px;
+}
+.wallet-btn:hover { background: rgba(79, 140, 255, 0.12); }
+.wallet-btn.connected { color: var(--green); border-color: var(--green); }
+
+.ticket-wrap { position: relative; }
+.ticket-blur { filter: blur(4px); opacity: 0.55; pointer-events: none; user-select: none; }
+.coming-soon-overlay {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; text-align: center; padding: 16px;
+}
+.coming-soon-overlay strong { font-size: 16px; }
+
+.tag.settled { color: var(--green); border-color: var(--green); }
+.banner.success { border-color: var(--green); color: var(--green); }
+
+.scorecard { display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
+.scorecard-item { text-align: center; }
+.scorecard-num { font-size: 26px; font-weight: 700; }
+.scorecard-label { flex-basis: 100%; }
+
+.thesis-card {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; margin: 10px 0;
+}
+.thesis-card h2 { margin: 8px 0 4px; }
+.thesis-body { font-size: 14px; white-space: pre-wrap; margin: 4px 0 0; }
+
+.comment { font-size: 14px; margin: 8px 0; }
+
+.prompt-box {
+  width: 100%; max-width: none; padding: 10px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  font-family: inherit; font-size: 14px; resize: vertical;
+}
+.analysis-answer {
+  margin-top: 14px; padding: 14px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--bg);
+  white-space: pre-wrap; font-size: 14px; line-height: 1.55;
+}

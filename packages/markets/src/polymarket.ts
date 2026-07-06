@@ -24,6 +24,9 @@ export interface GammaMarket {
   liquidityNum?: number;
   outcomes?: string; // JSON-encoded array, e.g. '["Yes","No"]' or team names
   outcomePrices?: string; // JSON-encoded array, e.g. '["0.62","0.38"]'
+  /** Outcome label within the parent event, e.g. "Mexico" for a World Cup winner market. */
+  groupItemTitle?: string;
+  events?: Array<{ id?: string; slug?: string; title?: string }>;
   closed?: boolean;
 }
 
@@ -52,11 +55,20 @@ export function toListing(m: GammaMarket): MarketListing {
     if (Number.isFinite(p)) yesPrice = p;
   }
 
+  // Markets belong to a parent event ("World Cup Winner" holds one market per
+  // country); group them so the dashboard shows one card per event.
+  const event = m.events?.[0];
+  const group = event?.slug
+    ? { id: event.slug, title: (event.title ?? event.slug).trim() }
+    : undefined;
+
   return {
     id: m.id,
     venue: "polymarket",
     title: m.question ?? "",
     yesPrice,
+    group,
+    outcome: m.groupItemTitle?.trim() || m.question,
     closeTime: m.endDate,
     volume: m.volumeNum ?? (m.volume ? Number(m.volume) : undefined),
     liquidity: m.liquidityNum ?? (m.liquidity ? Number(m.liquidity) : undefined),

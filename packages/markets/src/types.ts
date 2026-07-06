@@ -7,6 +7,14 @@ export interface MarketListing {
   title: string;
   /** Price of YES normalized to 0..1 (Kalshi cents/100, Polymarket outcome price). */
   yesPrice: number | null;
+  /**
+   * The parent market/event this listing is one outcome of (Hyperliquid
+   * question, Kalshi event, Polymarket event). Listings sharing a group id
+   * belong on one card: "2026 World Cup Champion", not 14 country cards.
+   */
+  group?: { id: string; title: string };
+  /** Label of this outcome within its group (e.g. "Argentina", "Seattle"). */
+  outcome?: string;
   closeTime?: string;
   volume?: number;
   liquidity?: number;

@@ -70,6 +70,8 @@ export function toListings(meta: OutcomeMeta, mids: AllMids, opts: ScanOptions =
         venue: "hyperliquid",
         title,
         yesPrice: Number.isFinite(mid) ? mid : null,
+        group: { id: `q${q.question}`, title: q.name },
+        outcome: outcome.name,
         // Volume/liquidity would need one l2Book call per outcome; left undefined.
         raw: outcome
       });

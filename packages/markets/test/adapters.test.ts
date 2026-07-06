@@ -65,6 +65,32 @@ describe("kalshi toListing", () => {
     );
     expect(listing.title).toBe("Pro Baseball Game: Colorado vs Los Angeles D Winner?");
   });
+
+  it("groups the two team markets of one event and labels outcomes", () => {
+    const seattle = kalshiToListing(
+      {
+        ticker: "KXNFLGAME-26AUG15DALSEA-SEA",
+        event_ticker: "KXNFLGAME-26AUG15DALSEA",
+        title: "Will Seattle win the Dallas vs Seattle Pro Football game?",
+        yes_sub_title: "Seattle"
+      },
+      "Pro Football Game"
+    );
+    const dallas = kalshiToListing(
+      {
+        ticker: "KXNFLGAME-26AUG15DALSEA-DAL",
+        event_ticker: "KXNFLGAME-26AUG15DALSEA",
+        title: "Will Dallas win the Dallas vs Seattle Pro Football game?",
+        yes_sub_title: "Dallas"
+      },
+      "Pro Football Game"
+    );
+    expect(seattle.group?.id).toBe("KXNFLGAME-26AUG15DALSEA");
+    expect(seattle.group?.id).toBe(dallas.group?.id);
+    expect(seattle.group?.title).toBe("Dallas vs Seattle Pro Football game");
+    expect(seattle.outcome).toBe("Seattle");
+    expect(dallas.outcome).toBe("Dallas");
+  });
 });
 
 describe("kalshi series discovery", () => {
@@ -130,11 +156,15 @@ describe("polymarket toListing", () => {
       outcomes: '["Yes","No"]',
       outcomePrices: '["0.62","0.38"]',
       volumeNum: 137789512,
-      liquidityNum: 500000
+      liquidityNum: 500000,
+      groupItemTitle: "Mexico",
+      events: [{ id: "30615", slug: "world-cup-winner", title: "World Cup Winner " }]
     });
     expect(listing.yesPrice).toBe(0.62);
     expect(listing.volume).toBe(137789512);
     expect(listing.url).toBe("https://polymarket.com/market/mexico-world-cup");
+    expect(listing.group).toEqual({ id: "world-cup-winner", title: "World Cup Winner" });
+    expect(listing.outcome).toBe("Mexico");
   });
 
   it("returns null yesPrice for moneyline (team-name) outcomes", () => {
@@ -178,6 +208,8 @@ describe("hyperliquid toListings", () => {
     const argentina = listings.find((l) => l.title.includes("Argentina"));
     expect(argentina?.id).toBe("#1730");
     expect(argentina?.yesPrice).toBeCloseTo(0.17142);
+    expect(argentina?.group).toEqual({ id: "q32", title: "2026 World Cup Champion" });
+    expect(argentina?.outcome).toBe("Argentina");
     expect(listings.some((l) => l.title.includes("Settled Team"))).toBe(false);
   });
 

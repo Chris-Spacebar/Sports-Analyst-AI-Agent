@@ -32,6 +32,7 @@ export interface KalshiMarket {
   event_ticker?: string;
   title: string;
   yes_sub_title?: string;
+  subtitle?: string;
   last_price_dollars?: string | null;
   yes_bid_dollars?: string | null;
   yes_ask_dollars?: string | null;
@@ -128,11 +129,22 @@ export function toListing(m: KalshiMarket, seriesTitle?: string): MarketListing 
     ? `${seriesTitle}: ${m.title}`
     : m.title;
 
+  // One Kalshi event = one game with a market per team; group them on one card.
+  // "Will Seattle win the Dallas vs Seattle Pro Football game?" -> event title
+  // "Dallas vs Seattle Pro Football game"; symmetric titles stay as-is.
+  const willWin = /^will .+? win (?:the )?(.+?)\??$/i.exec(m.title);
+  const eventTitle = willWin ? willWin[1] : m.title;
+  const groupTitle = seriesTitle && !eventTitle.toLowerCase().includes(seriesTitle.toLowerCase())
+    ? `${seriesTitle}: ${eventTitle}`
+    : eventTitle;
+
   return {
     id: m.ticker,
     venue: "kalshi",
     title,
     yesPrice,
+    group: { id: m.event_ticker ?? m.ticker, title: groupTitle },
+    outcome: m.yes_sub_title ?? m.subtitle,
     closeTime: m.close_time,
     volume: num(m.volume_fp) ?? undefined,
     liquidity: num(m.liquidity_dollars) ?? undefined,
