@@ -15,8 +15,8 @@ export default function ResearchPage() {
       </p>
 
       <div className="card">
-        <h2>Founder — track record</h2>
-        <Scorecard card={overall} label="All published picks, graded against settled markets" />
+        <h2>Do the picks actually win? Judge for yourself</h2>
+        <Scorecard card={overall} label="Every published pick is timestamped and graded when the market settles — no cherry-picking" />
       </div>
 
       {REPORTS.map((report) => {

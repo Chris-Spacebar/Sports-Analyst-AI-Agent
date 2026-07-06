@@ -38,11 +38,12 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Sports markets — model vs price</h1>
-      <div className="banner">
-        Analysis mode. This dashboard surfaces sports listings from Kalshi, Polymarket, and Hyperliquid
-        and pairs them with the agent&apos;s factor-based analysis. It is not financial advice.
-      </div>
+      <h1>Live sports markets</h1>
+      <p className="subtitle">
+        Live prices for sports markets on Kalshi, Polymarket, and Hyperliquid — a market price is roughly
+        the crowd&apos;s probability (buy at 52¢, win $1 if it happens). Our research lives on the{" "}
+        <a href="/events">event pages</a>. Not financial advice.
+      </p>
 
       {loading && <p className="muted">Scanning venues…</p>}
       {error && <p className="muted">Error: {error}</p>}
@@ -67,7 +68,7 @@ export default function Dashboard() {
                 onClick={() => openGroup(g)}
               >
                 <div>
-                  <span className="tag">{g.venue}</span>
+                  <span className={`tag venue-${g.venue}`}>{g.venue}</span>
                   {g.sport && <span className="tag sport">{g.sport.replace("_", " ")}</span>}
                   {g.outcomes.length > 1 && <span className="tag">{g.outcomes.length} outcomes</span>}
                 </div>

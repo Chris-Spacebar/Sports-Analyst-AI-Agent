@@ -1,14 +1,24 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 import { REPORTS, gradeReport } from "@/lib/reports";
-
-export const metadata = { title: "Events — Sports Analyst AI Agent" };
+import EventCard from "@/components/EventCard";
+import { useLiveListings } from "@/lib/useLiveListings";
 
 export default function EventsPage() {
+  const { listings } = useLiveListings();
+
+  // Client components can't export metadata — set the tab title directly.
+  useEffect(() => {
+    document.title = "Events — Sports Analyst AI Agent";
+  }, []);
+
   return (
     <div>
       <h1>Events</h1>
-      <p className="muted">
-        Every event the analyst covers, with the research, live markets, and community theses in one place.
+      <p className="subtitle">
+        Every event we cover — the research, live market prices, and community theses in one place.
       </p>
       {REPORTS.map((report) => {
         const card = gradeReport(report);
@@ -23,21 +33,7 @@ export default function EventsPage() {
             </p>
             <div className="grid">
               {report.matches.map((m) => (
-                <Link key={m.eventKey} href={`/event/${m.eventKey}`} className="card market-card">
-                  <div>
-                    <span className="tag sport">{report.sport}</span>
-                    {m.result.settled ? (
-                      <span className="tag settled">settled</span>
-                    ) : (
-                      <span className="tag">pending</span>
-                    )}
-                  </div>
-                  <h2>{m.matchup}</h2>
-                  <div className="muted">
-                    {m.date} · pick: <strong>{m.predictedWinner}</strong> ({m.chanceToAdvance})
-                    {m.result.settled && m.result.winner ? ` · winner: ${m.result.winner}` : ""}
-                  </div>
-                </Link>
+                <EventCard key={m.eventKey} sport={report.sport} match={m} listings={listings} />
               ))}
             </div>
           </div>

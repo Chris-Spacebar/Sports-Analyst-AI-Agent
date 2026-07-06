@@ -4,37 +4,23 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getReport, gradeReport } from "@/lib/reports";
-import ReportSections from "@/components/ReportSections";
+import NarrativeAnalysis from "@/components/NarrativeAnalysis";
 import Scorecard from "@/components/Scorecard";
 import { groupListings, type Listing } from "@/lib/marketGroups";
 import { findTeam } from "@/lib/teamMatch";
+import { useLiveListings } from "@/lib/useLiveListings";
 
 const pct = (p: number | null | undefined) => (p != null ? `${(p * 100).toFixed(1)}%` : "—");
 
 export default function ReportPage() {
   const params = useParams<{ slug: string }>();
   const report = getReport(decodeURIComponent(params.slug));
-
-  const [champion, setChampion] = useState<Listing[] | null>(null);
-  const [scanNote, setScanNote] = useState("loading live odds…");
+  const { listings, failed, loaded } = useLiveListings();
   const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
-    fetch("/api/markets")
-      .then((r) => r.json())
-      .then((data: { listings: Listing[] }) => {
-        const g = groupListings(data.listings).find(
-          (x) => x.venue === "hyperliquid" && x.title.toLowerCase().includes("world cup champion")
-        );
-        if (g) {
-          setChampion(g.outcomes);
-          setScanNote(`live HIP-4 champion odds · ${g.outcomes.length} teams still listed`);
-        } else {
-          setScanNote("HIP-4 champion market not in the current scan");
-        }
-      })
-      .catch(() => setScanNote("live odds unavailable"));
-  }, []);
+    if (report) document.title = `${report.title} — Sports Analyst AI Agent`;
+  }, [report]);
 
   if (!report) {
     return (
@@ -45,6 +31,13 @@ export default function ReportPage() {
     );
   }
 
+  const champion: Listing[] | null = (() => {
+    const g = groupListings(listings).find(
+      (x) => x.venue === "hyperliquid" && x.title.toLowerCase().includes("world cup champion")
+    );
+    return g ? g.outcomes : null;
+  })();
+
   const card = gradeReport(report);
 
   return (
@@ -53,62 +46,46 @@ export default function ReportPage() {
         <Link href="/research">← Research</Link>
       </p>
       <h1>{report.title}</h1>
-      {report.preparedNote && <div className="banner">{report.preparedNote}</div>}
-      <div className="banner">
-        Trading features coming soon. Use Hyperliquid Outcome, Polymarket, or Kalshi to trade the markets.
-      </div>
+      <p className="subtitle">
+        Published {report.publishedAt} · {report.preparedNote}
+      </p>
 
       <div className="card">
         <h2>Report scorecard</h2>
         <Scorecard card={card} label={`${report.stage} picks, graded as markets settle`} />
       </div>
 
-      <div className="card">
-        <h2>Ask the analyst</h2>
-        <div className="ticket-wrap">
-          <div className="coming-soon-overlay">
-            <strong>Coming soon</strong>
-            <p className="muted">
-              Prompt-driven AI analysis is on the way. For now, dig into the report below.
-            </p>
-          </div>
-          <div className="ticket-blur">
-            <textarea
-              className="prompt-box"
-              rows={3}
-              placeholder="Ask about a match, a team, or a market…"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            <button disabled>Get analysis</button>
-          </div>
-        </div>
-      </div>
-
-      {report.xlsxPath && (
-        <p>
+      <p>
+        {report.xlsxPath && (
           <a href={report.xlsxPath} download className="button-link">
             ⬇ Download the full report (.xlsx)
           </a>
-        </p>
-      )}
+        )}{" "}
+        <span className="muted">
+          Trading features coming soon — trade these markets on Hyperliquid, Polymarket, or Kalshi.
+        </span>
+      </p>
 
       <div className="card">
-        <h2>{report.stage} — overview</h2>
-        <p className="muted">{scanNote}</p>
+        <h2>{report.stage} — the eight picks</h2>
+        <p className="muted">
+          {!loaded
+            ? "loading live odds…"
+            : champion
+              ? `live Hyperliquid champion odds · ${champion.length} teams still listed`
+              : failed
+                ? "live odds unavailable right now"
+                : "champion market not in the current scan"}
+        </p>
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Date</th>
                 <th>Matchup</th>
-                <th>Venue</th>
-                <th>Kickoff</th>
-                <th>Weather</th>
                 <th>Pick</th>
-                <th>Advance</th>
-                <th>Score</th>
+                <th>Our probability</th>
+                <th>Predicted score</th>
                 <th>Result</th>
                 <th>Champion odds (live)</th>
               </tr>
@@ -123,30 +100,33 @@ export default function ReportPage() {
                 return (
                   <tr key={m.num}>
                     <td>{m.num}</td>
-                    <td>{m.date}</td>
                     <td>
                       <Link href={`/event/${m.eventKey}`}>
                         <strong>{m.matchup}</strong>
                       </Link>
-                      <div className="muted">{m.rationale}</div>
+                      <div className="rationale">{m.rationale}</div>
+                      <div className="muted">{m.date} · {m.kickoff}</div>
                     </td>
-                    <td>{m.venue}</td>
-                    <td>{m.kickoff}</td>
-                    <td>{m.weather}</td>
                     <td>
                       <strong>{m.predictedWinner}</strong>
                     </td>
                     <td>{m.chanceToAdvance}</td>
                     <td>{m.predictedScore}</td>
                     <td>
-                      {m.result.settled
-                        ? `${m.result.winner} ${hit ? "✓" : "✗"}`
-                        : "pending"}
+                      {m.result.settled ? (
+                        <span className={hit ? "receipt-hit" : "receipt-miss"}>
+                          {m.result.winner} {hit ? "✓" : "✗"}
+                        </span>
+                      ) : (
+                        "pending"
+                      )}
                     </td>
                     <td>
                       {champion
                         ? `${m.teamA}: ${a ? pct(a.yesPrice) : "out"} · ${m.teamB}: ${b ? pct(b.yesPrice) : "out"}`
-                        : "…"}
+                        : loaded
+                          ? "—"
+                          : "…"}
                     </td>
                   </tr>
                 );
@@ -158,8 +138,8 @@ export default function ReportPage() {
 
       <div className="card">
         <h2>Match-by-match analysis</h2>
-        {report.matches.map((m) => (
-          <details key={m.num} className="match-details">
+        {report.matches.map((m, i) => (
+          <details key={m.num} className="match-details" open={i === report.matches.findIndex((x) => !x.result.settled)}>
             <summary>
               <strong>
                 {m.num}. {m.matchup}
@@ -167,7 +147,7 @@ export default function ReportPage() {
               — pick: {m.predictedWinner} ({m.chanceToAdvance}), {m.predictedScore} ·{" "}
               <Link href={`/event/${m.eventKey}`}>event page →</Link>
             </summary>
-            <ReportSections sections={m.sections} />
+            <NarrativeAnalysis match={m} />
           </details>
         ))}
       </div>
@@ -180,6 +160,28 @@ export default function ReportPage() {
           ))}
         </ul>
         {report.howToRead && <p className="muted">{report.howToRead}</p>}
+      </div>
+
+      <div className="card">
+        <h2>Ask the analyst</h2>
+        <div className="ticket-wrap">
+          <div className="coming-soon-overlay">
+            <strong>Coming soon</strong>
+            <p className="muted">
+              Prompt-driven AI analysis is on the way. For now, dig into the report above.
+            </p>
+          </div>
+          <div className="ticket-blur">
+            <textarea
+              className="prompt-box"
+              rows={3}
+              placeholder="Ask about a match, a team, or a market…"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+            <button disabled>Get analysis</button>
+          </div>
+        </div>
       </div>
     </div>
   );

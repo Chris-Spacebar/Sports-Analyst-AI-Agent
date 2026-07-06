@@ -29,10 +29,8 @@ a { color: var(--accent); text-decoration: none; }
   background: var(--panel);
 }
 .nav .brand { font-weight: 700; font-size: 16px; color: var(--text); }
-.nav .mode {
-  margin-left: auto; font-size: 12px; color: var(--muted);
-  border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px;
-}
+.nav a.nav-active { color: var(--text); font-weight: 700; border-bottom: 2px solid var(--accent); }
+.nav-spacer { margin-left: auto; }
 
 .card {
   background: var(--panel); border: 1px solid var(--border);
@@ -47,6 +45,10 @@ a { color: var(--accent); text-decoration: none; }
   margin-right: 6px;
 }
 .tag.sport { color: var(--gold); border-color: var(--gold); }
+/* Venue badges carry each venue's signature color. */
+.tag.venue-hyperliquid { color: #2dd4bf; border-color: #2dd4bf; }
+.tag.venue-polymarket { color: #5f8bff; border-color: #5f8bff; }
+.tag.venue-kalshi { color: #4ade80; border-color: #4ade80; }
 
 .price { font-size: 22px; font-weight: 700; }
 .muted { color: var(--muted); font-size: 13px; }
@@ -137,7 +139,55 @@ a.market-card:hover { border-color: var(--accent); }
 .coming-soon-overlay strong { font-size: 16px; }
 
 .tag.settled { color: var(--green); border-color: var(--green); }
+.tag.missed { color: var(--red); border-color: var(--red); }
 .banner.success { border-color: var(--green); color: var(--green); }
+
+.subtitle { color: var(--muted); font-size: 14px; margin: -6px 0 18px; max-width: 760px; }
+
+.edge-strip {
+  display: flex; gap: 32px; flex-wrap: wrap; align-items: center;
+  background: var(--panel); border: 1px solid var(--accent);
+  border-radius: 10px; padding: 14px 18px; margin: 16px 0;
+}
+.edge-cell { min-width: 130px; }
+.edge-num { font-size: 24px; font-weight: 700; }
+
+.pull-quote {
+  font-size: 17px; font-style: italic; color: var(--text);
+  border-left: 3px solid var(--gold); padding-left: 14px; margin: 12px 0;
+}
+.verdict-box {
+  border: 1px solid var(--gold); border-radius: 10px;
+  padding: 4px 16px 12px; margin: 12px 0;
+}
+.verdict-box p { font-size: 15px; line-height: 1.6; }
+
+.pros-cons { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin: 12px 0; }
+.pros-cons-col { border: 1px solid var(--border); border-radius: 10px; padding: 4px 14px 12px; }
+.pros-cons-col p { font-size: 14px; line-height: 1.55; }
+.pros-cons-col .plus, .pros-cons-col .minus {
+  display: block; font-size: 12px; font-weight: 700; margin-bottom: 2px;
+}
+.pros-cons-col .plus { color: var(--green); }
+.pros-cons-col .minus { color: var(--red); }
+
+.featured-card { border-color: var(--accent); margin-bottom: 16px; }
+.call-line { font-size: 15px; margin: 6px 0; }
+.receipt-hit { color: var(--green); font-size: 14px; font-weight: 600; margin: 6px 0; }
+.receipt-miss { color: var(--red); font-size: 14px; font-weight: 600; margin: 6px 0; }
+.rationale { font-size: 13px; margin-top: 2px; }
+
+.tooltip { position: relative; cursor: help; }
+.tooltip .tooltip-text {
+  visibility: hidden; opacity: 0; transition: opacity 0.15s;
+  position: absolute; bottom: 140%; left: 50%; transform: translateX(-50%);
+  width: 280px; padding: 10px 12px; z-index: 10;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-size: 12px; line-height: 1.5; text-align: left;
+}
+.tooltip:hover .tooltip-text, .tooltip:focus .tooltip-text {
+  visibility: visible; opacity: 1;
+}
 
 .scorecard { display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
 .scorecard-item { text-align: center; }

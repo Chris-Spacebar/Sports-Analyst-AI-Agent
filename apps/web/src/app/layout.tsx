@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import WalletConnect from "@/components/WalletConnect";
+import NavLinks from "@/components/NavLinks";
 
 export const metadata: Metadata = {
   title: "Sports Analyst AI Agent",
@@ -12,11 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <nav className="nav">
-          <span className="brand">Sports Analyst AI Agent</span>
-          <a href="/events">Events</a>
-          <a href="/markets">Markets</a>
-          <a href="/research">Research</a>
-          <span className="mode">Phase 1: Soccer · NFL · NBA · MLB</span>
+          <a href="/" className="brand">Sports Analyst AI Agent</a>
+          <NavLinks />
+          <span className="nav-spacer" />
           <WalletConnect />
         </nav>
         <main className="container">{children}</main>

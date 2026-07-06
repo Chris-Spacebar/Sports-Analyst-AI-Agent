@@ -70,6 +70,60 @@ export interface Scorecard {
   brierScore: number | null;
 }
 
+export interface MatchNarrative {
+  /** The hook, e.g. "The Iberian derby — the most complete team against Ronaldo's last stand". */
+  oneLine?: string;
+  /** The Final Verdict decision paragraph — the argument's conclusion. */
+  decision?: string;
+  sources?: string;
+  /** Per-team pros/cons pulled from the Boosts and Hindrances section. */
+  boosts?: {
+    teamA: { plus?: string; minus?: string };
+    teamB: { plus?: string; minus?: string };
+  };
+  /** Supporting-evidence sections (Team Comparison, Market view, H2H). */
+  rest: ReportSection[];
+  /** Venue/kickoff/conditions — appendix material, collapsed by default. */
+  matchInfo?: ReportSection;
+}
+
+/**
+ * Decompose a match's workbook sections into narrative order: verdict first,
+ * argument second, evidence tables third, logistics last.
+ */
+export function matchNarrative(m: ReportMatch): MatchNarrative {
+  const sections = m.sections ?? [];
+  const find = (prefix: string) => sections.find((s) => s.name.toLowerCase().startsWith(prefix));
+  const prediction = find("prediction");
+  const verdict = find("final verdict");
+  const boostsSec = find("boosts");
+  const matchInfo = find("match info");
+  const row = (sec: ReportSection | undefined, label: string) =>
+    sec?.rows.find((r) => (r[0] ?? "").toLowerCase().startsWith(label))?.[1] ?? undefined;
+
+  let boosts: MatchNarrative["boosts"];
+  if (boostsSec) {
+    const plus = boostsSec.rows.find((r) => (r[0] ?? "").toLowerCase().startsWith("boosts"));
+    const minus = boostsSec.rows.find((r) => (r[0] ?? "").toLowerCase().startsWith("hindrances"));
+    boosts = {
+      teamA: { plus: plus?.[1] ?? undefined, minus: minus?.[1] ?? undefined },
+      teamB: { plus: plus?.[2] ?? undefined, minus: minus?.[2] ?? undefined }
+    };
+  }
+
+  const skip = new Set(
+    [prediction?.name, verdict?.name, boostsSec?.name, matchInfo?.name].filter(Boolean) as string[]
+  );
+  return {
+    oneLine: row(prediction, "in one line") ?? undefined,
+    decision: row(verdict, "decision") ?? undefined,
+    sources: row(verdict, "key sources") ?? undefined,
+    boosts,
+    rest: sections.filter((s) => !skip.has(s.name)),
+    matchInfo
+  };
+}
+
 /** Parse "62%" or "Spain 64% / Portugal 36%" into the predicted winner's probability, 0..1. */
 export function pickProbability(m: ReportMatch): number | null {
   const text = m.chanceToAdvance ?? "";

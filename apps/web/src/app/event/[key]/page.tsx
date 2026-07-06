@@ -1,35 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getEvent, pickProbability } from "@/lib/reports";
-import ReportSections from "@/components/ReportSections";
+import NarrativeAnalysis from "@/components/NarrativeAnalysis";
 import ThesisSection from "@/components/ThesisSection";
 import { marketsForEvent, findTeam } from "@/lib/teamMatch";
-import type { Listing } from "@/lib/marketGroups";
+import { edgeFor } from "@/lib/edge";
+import { useLiveListings } from "@/lib/useLiveListings";
 
 const pct = (p: number | null | undefined) => (p != null ? `${(p * 100).toFixed(1)}%` : "—");
+const cents = (p: number) => `${(p * 100).toFixed(1)}¢`;
 
 export default function EventPage() {
   const params = useParams<{ key: string }>();
   const eventKey = decodeURIComponent(params.key);
   const event = getEvent(eventKey);
 
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [scanNote, setScanNote] = useState("loading live prices…");
+  const { listings, errors, failed, loaded } = useLiveListings();
+  const failedVenues = Object.keys(errors);
+  const scanDegraded = failed || failedVenues.length > 0;
 
   useEffect(() => {
-    fetch("/api/markets")
-      .then((r) => r.json())
-      .then((data: { listings: Listing[]; errors?: Record<string, string> }) => {
-        setListings(data.listings ?? []);
-        const failed = Object.keys(data.errors ?? {});
-        // A venue error with zero listings must not read as "market settled".
-        setScanNote(failed.length > 0 ? `some venues unavailable right now (${failed.join(", ")})` : "");
-      })
-      .catch(() => setScanNote("live prices unavailable right now"));
-  }, []);
+    if (event) document.title = `${event.match.matchup} — Sports Analyst AI Agent`;
+  }, [event]);
 
   const eventMarkets = useMemo(() => {
     if (!event) return [];
@@ -48,6 +43,11 @@ export default function EventPage() {
     };
   }, [listings, event]);
 
+  const edge = useMemo(() => {
+    if (!event || event.match.result.settled) return undefined;
+    return edgeFor(event.match, listings);
+  }, [listings, event]);
+
   if (!event) {
     return (
       <div>
@@ -63,7 +63,15 @@ export default function EventPage() {
     ? match.result.winner.toLowerCase() === match.predictedWinner.toLowerCase()
     : null;
 
-  const outcomeOptions = eventMarkets.map((l) => ({
+  // Single-team propositions ("Will Spain reach the Quarterfinals?") don't name
+  // both teams, so marketsForEvent misses them — surface the one the edge strip
+  // compares against at the top of the table.
+  const tableMarkets =
+    edge && !eventMarkets.some((l) => l.id === edge.listing.id && l.venue === edge.listing.venue)
+      ? [edge.listing, ...eventMarkets]
+      : eventMarkets;
+
+  const outcomeOptions = tableMarkets.map((l) => ({
     label: l.outcome ?? l.title,
     venue: l.venue,
     price: l.yesPrice
@@ -80,7 +88,9 @@ export default function EventPage() {
         <span className="tag">{report.competition} · {report.stage}</span>
         <span className="tag">{match.date}</span>
         {match.result.settled ? (
-          <span className="tag settled">settled: {match.result.winner} advanced</span>
+          <span className={hit ? "tag settled" : "tag missed"}>
+            settled: {match.result.winner} advanced
+          </span>
         ) : (
           <span className="tag">pending</span>
         )}
@@ -88,18 +98,53 @@ export default function EventPage() {
 
       {match.result.settled && (
         <div className={hit ? "banner success" : "banner error"}>
-          Founder pick: {match.predictedWinner} ({match.chanceToAdvance}) —{" "}
+          Prediction: {match.predictedWinner} ({match.chanceToAdvance}) —{" "}
           {hit ? "CORRECT" : `missed (${match.result.winner} advanced)`}
+        </div>
+      )}
+
+      {!match.result.settled && (
+        <div className="edge-strip">
+          <div className="edge-cell">
+            <div className="edge-num">{founderP != null ? pct(founderP) : match.chanceToAdvance}</div>
+            <div className="muted">our probability — {match.predictedWinner} advances</div>
+          </div>
+          {edge ? (
+            <>
+              <div className="edge-cell">
+                <div className="edge-num">{cents(edge.marketPrice)}</div>
+                <div className="muted">market price ({edge.venue})</div>
+              </div>
+              <div className="edge-cell">
+                <div className={`edge-num ${edge.edgePts >= 3 ? "edge-pos" : edge.edgePts <= -3 ? "edge-neg" : ""}`}>
+                  {edge.edgePts > 0 ? "+" : ""}
+                  {edge.edgePts.toFixed(1)} pts
+                </div>
+                <div className="muted">{edge.verdict}</div>
+              </div>
+            </>
+          ) : (
+            <div className="edge-cell">
+              <div className="muted">
+                {/* Never claim the market doesn't exist when the scan failed. */}
+                {!loaded
+                  ? "loading live market price…"
+                  : scanDegraded
+                    ? "live prices unavailable right now — can't compare against the market"
+                    : "no live market on this exact proposition (advancing) right now"}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       <div className="detail-grid">
         <div className="card">
-          <h2>Founder&apos;s call</h2>
+          <h2>Prediction</h2>
           <div className="price">{match.predictedWinner}</div>
           <div className="muted">
-            to advance · stated {founderP != null ? pct(founderP) : match.chanceToAdvance} · predicted{" "}
-            {match.predictedScore}
+            to advance · our probability {founderP != null ? pct(founderP) : match.chanceToAdvance} ·
+            predicted {match.predictedScore}
           </div>
           <p>{match.rationale}</p>
           <p className="muted">
@@ -113,43 +158,58 @@ export default function EventPage() {
 
         <div className="card">
           <h2>Live markets on this event</h2>
-          {scanNote && <p className="muted">{scanNote}</p>}
-          {!scanNote && eventMarkets.length === 0 && (
+          {failed && <p className="muted">live prices unavailable right now</p>}
+          {!failed && failedVenues.length > 0 && (
+            <p className="muted">some venues unavailable right now ({failedVenues.join(", ")})</p>
+          )}
+          {loaded && tableMarkets.length === 0 && !scanDegraded && (
             <p className="muted">No open market on this exact match right now (it may have settled).</p>
           )}
-          {eventMarkets.length > 0 && (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Venue</th>
-                  <th>Outcome</th>
-                  <th>YES</th>
-                  <th>Trade</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eventMarkets.map((l) => (
-                  <tr key={`${l.venue}:${l.id}`}>
-                    <td>{l.venue}</td>
-                    <td>{l.outcome ?? l.title}</td>
-                    <td>{pct(l.yesPrice)}</td>
-                    <td>
-                      {l.url ? (
-                        <a href={l.url} target="_blank" rel="noreferrer">
-                          {l.venue} ↗
-                        </a>
-                      ) : (
-                        <span className="muted">on venue</span>
-                      )}
-                    </td>
+          {tableMarkets.length > 0 && (
+            <>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Venue</th>
+                    <th>Outcome</th>
+                    <th>Market price</th>
+                    <th>Trade</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {tableMarkets.map((l) => (
+                    <tr key={`${l.venue}:${l.id}`}>
+                      <td>
+                        <span className={`tag venue-${l.venue}`}>{l.venue}</span>
+                      </td>
+                      <td>
+                        {l.outcome ?? l.title}
+                        {edge?.listing.id === l.id && <span className="tag settled"> matches our pick</span>}
+                      </td>
+                      <td>{pct(l.yesPrice)}</td>
+                      <td>
+                        {l.url ? (
+                          <a href={l.url} target="_blank" rel="noreferrer">
+                            {l.venue} ↗
+                          </a>
+                        ) : (
+                          <span className="muted">on venue</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="muted">
+                A market price ≈ the crowd&apos;s probability: buy at 52¢, win $1 if it happens. Careful
+                comparing bets — &quot;Reg Time&quot; markets pay only for a win in 90 minutes (a draw pays
+                neither team), which is a different bet from advancing.
+              </p>
+            </>
           )}
           {championOdds && (championOdds.a || championOdds.b) && (
             <p className="muted">
-              Champion odds (HIP-4): {match.teamA} {pct(championOdds.a?.yesPrice ?? null)} ·{" "}
+              Tournament champion odds (Hyperliquid): {match.teamA} {pct(championOdds.a?.yesPrice ?? null)} ·{" "}
               {match.teamB} {pct(championOdds.b?.yesPrice ?? null)}
             </p>
           )}
@@ -157,8 +217,8 @@ export default function EventPage() {
       </div>
 
       <div className="card">
-        <h2>Founder&apos;s full analysis</h2>
-        <ReportSections sections={match.sections} />
+        <h2>Full analysis</h2>
+        <NarrativeAnalysis match={match} />
       </div>
 
       <ThesisSection eventKey={eventKey} outcomeOptions={outcomeOptions} />

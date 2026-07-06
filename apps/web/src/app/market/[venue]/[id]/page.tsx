@@ -134,7 +134,7 @@ export default function MarketPage() {
       </p>
       <h1>{group.title}</h1>
       <div>
-        <span className="tag">{group.venue}</span>
+        <span className={`tag venue-${group.venue}`}>{group.venue}</span>
         {group.sport && <span className="tag sport">{group.sport.replace("_", " ")}</span>}
         <span className="tag">{group.outcomes.length} outcome{group.outcomes.length > 1 ? "s" : ""}</span>
       </div>
@@ -288,8 +288,8 @@ export default function MarketPage() {
         <div className="card">
           <h2>Round of 16 — fixtures vs live champion odds</h2>
           <p className="muted">
-            HIP-4 lists the Champion market (teams still alive appear above); these are the Round of 16
-            ties from the Analyst report with each side&apos;s live odds of winning the tournament.
+            Hyperliquid lists the Champion market (teams still alive appear above); these are the Round of
+            16 ties from the research report with each side&apos;s live odds of winning the tournament.
           </p>
           <table className="table">
             <thead>
