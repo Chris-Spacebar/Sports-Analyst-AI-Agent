@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { groupListings, type Listing, type MarketGroup } from "@/lib/marketGroups";
+import { findTeam, researchEventFor } from "@/lib/teamMatch";
+import { pct, cents } from "@/lib/format";
 import { REPORTS } from "@/lib/reports";
-
-const pct = (p: number | null | undefined) => (p != null ? `${(p * 100).toFixed(1)}%` : "—");
 
 interface PreparedOrder {
   intent?: unknown;
@@ -14,15 +14,6 @@ interface PreparedOrder {
   reasons: string[];
   modelEdgeUsed?: boolean;
   error?: string;
-}
-
-/** Team name → live listing lookup, tolerant of "USA"/"United States" style aliases. */
-function findTeam(outcomes: Listing[], team: string): Listing | undefined {
-  const t = team.toLowerCase();
-  return outcomes.find((o) => {
-    const name = (o.outcome ?? o.title).toLowerCase();
-    return name === t || name.includes(t) || t.includes(name);
-  });
 }
 
 export default function MarketPage() {
@@ -57,7 +48,7 @@ export default function MarketPage() {
       .then((data: { listings: Listing[] }) => {
         const g = groupListings(data.listings).find((x) => x.key === key);
         if (g) setGroup(g);
-        else setLoadError("Market not found in the current scan — it may have closed.");
+        else setLoadError("Market not found in the current scan; it may have closed.");
       })
       .catch((e) => setLoadError(String(e)));
   }, [key]);
@@ -75,13 +66,13 @@ export default function MarketPage() {
   }, [selected]);
 
   const yesLimit = Number(limit);
-  const sidePrice = side === "YES" ? yesLimit : 1 - yesLimit;
   const p = Number(modelProb) / 100;
   const hasModel = modelProb.trim() !== "" && Number.isFinite(p) && p >= 0 && p <= 1;
   const edge = hasModel && Number.isFinite(yesLimit) ? (side === "YES" ? p - yesLimit : yesLimit - p) : null;
 
   const isWorldCupChampion =
     venue === "hyperliquid" && (group?.title ?? "").toLowerCase().includes("world cup champion");
+  const research = group ? researchEventFor(group.title) : undefined;
 
   const prepare = async () => {
     if (!group || !selected) return;
@@ -99,7 +90,7 @@ export default function MarketPage() {
           limitPrice: yesLimit,
           modelProbability: hasModel ? p : undefined,
           confidence: confidence.trim() === "" ? undefined : Number(confidence),
-          // undefined when the venue reports no depth data — the API waives the
+          // undefined when the venue reports no depth data: the API waives the
           // liquidity check for unknown depth (mirrors the scan route's policy).
           marketLiquidityUsd: selected.liquidity ?? selected.volume
         })
@@ -138,6 +129,11 @@ export default function MarketPage() {
         {group.sport && <span className="tag sport">{group.sport.replace("_", " ")}</span>}
         <span className="tag">{group.outcomes.length} outcome{group.outcomes.length > 1 ? "s" : ""}</span>
       </div>
+      {research && (
+        <p className="muted">
+          <Link href={`/event/${research.eventKey}`}>Our research on this event →</Link>
+        </p>
+      )}
 
       <div className="detail-grid">
         <div className="card">
@@ -148,7 +144,7 @@ export default function MarketPage() {
               <select value={selected?.id} onChange={(e) => setSelectedId(e.target.value)}>
                 {group.outcomes.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {(o.outcome ?? o.title) + (o.yesPrice != null ? ` — ${pct(o.yesPrice)}` : "")}
+                    {(o.outcome ?? o.title) + (o.yesPrice != null ? ` (${pct(o.yesPrice)})` : "")}
                   </option>
                 ))}
               </select>
@@ -188,7 +184,7 @@ export default function MarketPage() {
                 >
                   <td>{o.outcome ?? o.title}</td>
                   <td>{pct(o.yesPrice)}</td>
-                  <td>{o.yesPrice != null ? pct(1 - o.yesPrice) : "—"}</td>
+                  <td>{o.yesPrice != null ? pct(1 - o.yesPrice) : "n/a"}</td>
                 </tr>
               ))}
             </tbody>
@@ -225,13 +221,16 @@ export default function MarketPage() {
             ))}
           </div>
 
-          <label>Limit price (YES terms, 0-1) — {side} costs {Number.isFinite(sidePrice) ? sidePrice.toFixed(3) : "—"}</label>
+          <label>
+            Limit price for YES (0 to 1). YES currently costs{" "}
+            {selected?.yesPrice != null ? cents(selected.yesPrice) : "n/a"}.
+          </label>
           <input type="number" step={0.001} min={0} max={1} value={limit} onChange={(e) => setLimit(e.target.value)} />
 
           <label>Stake (USD)</label>
           <input type="number" step={1} min={0} value={stake} onChange={(e) => setStake(e.target.value)} />
 
-          <label>Your model probability of YES (%) — from the Research tab or your own research</label>
+          <label>Your probability that YES happens (%).</label>
           <input
             type="number"
             step={1}
@@ -267,7 +266,7 @@ export default function MarketPage() {
             <div className={`verdict verdict-${result.status}`}>
               <strong>
                 {result.status === "blocked" && "Blocked by guardrails"}
-                {result.status === "awaiting_approval" && "Prepared — awaiting your approval"}
+                {result.status === "awaiting_approval" && "Prepared, awaiting your approval"}
                 {result.status === "would_submit" && "Would submit (auto mode)"}
               </strong>
               {result.reasons.length > 0 && (
@@ -286,7 +285,7 @@ export default function MarketPage() {
 
       {isWorldCupChampion && (
         <div className="card">
-          <h2>Round of 16 — fixtures vs live champion odds</h2>
+          <h2>Round of 16: fixtures vs live champion odds</h2>
           <p className="muted">
             Hyperliquid lists the Champion market (teams still alive appear above); these are the Round of
             16 ties from the research report with each side&apos;s live odds of winning the tournament.
@@ -323,7 +322,7 @@ export default function MarketPage() {
           </table>
           <p className="muted">
             &quot;out&quot; = no longer listed among live outcomes (eliminated or settled). Full match
-            analysis on the <Link href="/research">Research</Link> tab.
+            analysis on the <Link href="/picks">picks pages</Link>.
           </p>
         </div>
       )}

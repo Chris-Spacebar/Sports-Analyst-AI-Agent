@@ -1,13 +1,13 @@
 # Sports Analyst AI Agent
 
-An AI agent that analyzes sporting events listed on prediction markets — Kalshi, Polymarket, and Hyperliquid (HIP-4) — using deep, factor-based analysis of the sport, teams, players, injuries, cards, tactics, venue, weather, and more. It produces a model probability for each outcome and compares it against the live market price to surface edges.
+An AI agent that analyzes sporting events listed on prediction markets (Kalshi, Polymarket, and Hyperliquid HIP-4) using deep, factor-based analysis of the sport, teams, players, injuries, cards, tactics, venue, weather, and more. It produces a model probability for each outcome and compares it against the live market price to surface edges.
 
 **Modes**
 
 | Mode | What it does |
 |---|---|
 | `analysis` (default) | Research + probabilities + edge report only |
-| `semi_auto` | Prepares orders per your settings — every order needs your explicit approval |
+| `semi_auto` | Prepares orders per your settings. Every order needs your explicit approval |
 | `auto` | Executes within hard guardrails (stake caps, loss limits, kill switch). Off by default |
 
 ## Monorepo layout
@@ -16,7 +16,7 @@ An AI agent that analyzes sporting events listed on prediction markets — Kalsh
 apps/web             Next.js dashboard + settings + API routes (deploys to Vercel)
 packages/agent       Analysis engine + per-sport playbooks (Phase 1: soccer, NFL, NBA, MLB)
 packages/markets     Market adapters: Kalshi, Polymarket, Hyperliquid HIP-4
-packages/execution   Order layer with guardrails — DISABLED by default
+packages/execution   Order layer with guardrails (DISABLED by default)
 docs/                Architecture, phase roadmap, setup guide
 ```
 
@@ -27,6 +27,15 @@ npm install
 cp .env.example apps/web/.env   # Next.js loads env from apps/web; everything is optional for analysis mode
 npm run dev                     # http://localhost:3000
 ```
+
+## Daily operations
+
+Two Claude Code slash commands keep the research site current:
+
+- `/update-results`: run every morning. Grades finished picks against verified results, snapshots market prices, and refreshes the freshness stamps in `apps/web/src/content/meta.json`.
+- `/new-report <stage>`: run when a new round is announced (e.g. `/new-report World Cup quarterfinals`). Researches every match, publishes the report JSON, and features it on the homepage.
+
+Both are manual for now and can later run on a schedule.
 
 ## Deploy
 

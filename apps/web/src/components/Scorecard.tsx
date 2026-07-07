@@ -1,12 +1,10 @@
 import type { Scorecard as ScorecardData } from "@/lib/reports";
 
 const BRIER_EXPLAINER =
-  "How it's scored: for every settled pick we take (stated probability − outcome)², " +
-  "where outcome is 1 if the pick was right and 0 if it missed, then average across picks. " +
-  "0 = perfectly confident and correct · 0.25 = what coin-flip guessing scores · 1 = fully confident and wrong. " +
-  "Lower means the predictions are both accurate and honestly calibrated.";
+  "Average of (stated probability minus outcome) squared across settled picks. " +
+  "0 is perfect, 0.25 matches coin-flip guessing, 1 is confidently wrong. Lower is better.";
 
-/** The analyst's verified track record — graded against settled markets. */
+/** The analyst's verified track record, graded against settled markets. */
 export default function Scorecard({ card, label }: { card: ScorecardData; label: string }) {
   return (
     <div className="scorecard">
@@ -21,7 +19,7 @@ export default function Scorecard({ card, label }: { card: ScorecardData; label:
         <div className="muted">picks pending</div>
       </div>
       <div className="scorecard-item">
-        <div className="scorecard-num">{card.brierScore ?? "—"}</div>
+        <div className="scorecard-num">{card.brierScore ?? "n/a"}</div>
         <div className="muted">
           Brier score (lower is better){" "}
           <span className="tooltip" tabIndex={0} aria-label={BRIER_EXPLAINER}>

@@ -4,16 +4,16 @@ The platform's primary axis is the **community research loop**: the founder publ
 
 ## Community-loop phases
 
-1. **Publish (now)** — founder reports as a content collection (`apps/web/src/content/reports/`, converted from the founder's workbook); event hub pages; picks graded as markets settle.
-2. **Contribute (now, local preview)** — thesis composer and per-event discussion shipped against a local store; the `ThesisRepository` interface in `apps/web/src/lib/thesisStore.ts` is the seam where Supabase lands.
-3. **Accounts + track records** — auth, cloud persistence, immutable timestamped picks, author profiles with auto-graded scorecards, settlement detection in the cron scan.
-4. **Community depth** — follows, digests, counter-theses, referencing/citation, leaderboards.
+1. **Publish (now)**: founder reports as a content collection (`apps/web/src/content/reports/`, converted from the founder's workbook); event hub pages; picks graded as markets settle.
+2. **Contribute (now, local preview)**: thesis composer and per-event discussion shipped against a local store; the `ThesisRepository` interface in `apps/web/src/lib/thesisStore.ts` is the seam where Supabase lands.
+3. **Accounts + track records**: auth, cloud persistence, immutable timestamped picks, author profiles with auto-graded scorecards, settlement detection in the cron scan.
+4. **Community depth**: follows, digests, counter-theses, referencing/citation, leaderboards.
 
 ## Sport-coverage phases (secondary axis)
 
 Each sport = a playbook file in `packages/agent/src/sports/` plus keywords. The engine, market adapters, and UI never change.
 
-## Phase 1 — NOW (shipped in this scaffold)
+## Phase 1: NOW (shipped in this scaffold)
 
 | Sport | Competitions |
 |---|---|
@@ -22,7 +22,7 @@ Each sport = a playbook file in `packages/agent/src/sports/` plus keywords. The 
 | Basketball | NBA, FIBA World Cup |
 | Baseball | MLB, KBO |
 
-## Phase 2 — Individual/racket + combat/strength
+## Phase 2: Individual/racket + combat/strength
 
 - Racket: tennis, badminton, squash, table tennis
 - Precision/target: golf, archery, bowling
@@ -31,15 +31,15 @@ Each sport = a playbook file in `packages/agent/src/sports/` plus keywords. The 
 
 Notes: individual sports need different factor sets (H2H matters much more in tennis; weight cuts and reach in MMA; course fit in golf).
 
-## Phase 3 — Athletics/gymnastics + mind/e-sports
+## Phase 3: Athletics/gymnastics + mind/e-sports
 
 - Track and field: marathons, sprinting, high jump, javelin, hurdles
 - Acrobatics: gymnastics, trampolining
 - Electronic: professional e-sports, fantasy leagues
 
-Notes: e-sports have rich structured data (patch metas, map pools) — strong candidate for deeper statistical models.
+Notes: e-sports have rich structured data (patch metas, map pools), a strong candidate for deeper statistical models.
 
-## Phase 4 — Water/snow + motorsports/extreme
+## Phase 4: Water/snow + motorsports/extreme
 
 - Water: swimming, water polo, surfing, rowing, sailing
 - Snow/ice: alpine skiing, snowboarding, figure skating, ice hockey

@@ -9,7 +9,7 @@ export function buildAnalysisPrompt(event: EventInput): string {
   const p = getPlaybook(event.sport);
   if (!p) throw new Error(`No playbook for sport: ${event.sport}`);
   const factors = p.factors
-    .map((f) => `- ${f.key} (weight ${f.weight}): ${f.label} — ${f.description}`)
+    .map((f) => `- ${f.key} (weight ${f.weight}): ${f.label} - ${f.description}`)
     .join("\n");
   return [
     `You are a rigorous sports analyst. Analyze this event for a prediction market.`,
@@ -32,14 +32,14 @@ export function buildAnalysisPrompt(event: EventInput): string {
  * Score an event with Claude. Requires ANTHROPIC_API_KEY.
  * Note: the model scores from its knowledge + any context you pass in
  * `extraContext` (e.g. pasted injury reports, news). For live data, feed
- * fresh research in — garbage in, garbage out.
+ * fresh research in; garbage in, garbage out.
  */
 export async function analyzeWithClaude(
   event: EventInput,
   extraContext?: string,
   apiKey = process.env.ANTHROPIC_API_KEY
 ): Promise<Analysis> {
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set — use manual factor scoring instead");
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set; use manual factor scoring instead");
 
   const prompt = buildAnalysisPrompt(event) + (extraContext ? `\n\nFresh research context:\n${extraContext}` : "");
 
@@ -64,7 +64,7 @@ export async function analyzeWithClaude(
     stop_reason?: string;
   };
   if (data.stop_reason === "max_tokens") {
-    throw new Error("Model response truncated (stop_reason max_tokens) — increase max_tokens");
+    throw new Error("Model response truncated (stop_reason max_tokens); increase max_tokens");
   }
   const text = data.content.find((b) => b.type === "text")?.text ?? "";
   const jsonMatch = text.match(/\{[\s\S]*\}/);

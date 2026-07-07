@@ -4,7 +4,7 @@ import { PLAYBOOKS, detectSport, keywordMatches } from "../src/sports/index.js";
 describe("detectSport", () => {
   it("matches soccer titles", () => {
     expect(detectSport("Will Manchester City win the Premier League?")).toBe("soccer");
-    expect(detectSport("Mexico vs England — FIFA World Cup Round of 16")).toBe("soccer");
+    expect(detectSport("Mexico vs England - FIFA World Cup Round of 16")).toBe("soccer");
     expect(detectSport("Chelsea FC: top-4 finish?")).toBe("soccer");
     expect(detectSport("World Cup Game: USA vs Belgium Winner?")).toBe("soccer");
     expect(detectSport("Rugby World Cup Game: NZ vs France Winner?")).toBeUndefined();

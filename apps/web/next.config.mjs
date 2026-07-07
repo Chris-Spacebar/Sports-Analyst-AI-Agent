@@ -1,11 +1,19 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@saa/agent", "@saa/markets", "@saa/execution"],
+  // The repo root has its own lockfile; without this Next warns about
+  // multiple lockfiles and may trace files from the wrong root.
+  outputFileTracingRoot: path.join(path.dirname(fileURLToPath(import.meta.url)), "../.."),
   async redirects() {
     return [
-      // The Analyst page became the Research library; the trading-agent
-      // Settings UI was removed from the interface (packages stay dormant).
-      { source: "/analyst", destination: "/research", permanent: false },
+      // Old top-level pages merged into /picks; /research/[slug] still serves
+      // individual reports, so both sources match exact paths only.
+      { source: "/events", destination: "/picks", permanent: false },
+      { source: "/research", destination: "/picks", permanent: false },
+      { source: "/analyst", destination: "/picks", permanent: false },
       { source: "/settings", destination: "/", permanent: false }
     ];
   },

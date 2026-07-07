@@ -1,4 +1,5 @@
 import type { Listing } from "@/lib/marketGroups";
+import { REPORTS } from "@/lib/reports";
 
 /** Team name → live listing lookup, tolerant of "USA"/"United States" style aliases. */
 export function findTeam(outcomes: Listing[], team: string): Listing | undefined {
@@ -17,4 +18,17 @@ export function marketsForEvent(listings: Listing[], teamA: string, teamB: strin
     const text = `${l.group?.title ?? ""} ${l.title} ${l.outcome ?? ""}`.toLowerCase();
     return text.includes(a) && text.includes(b);
   });
+}
+
+/** First report match whose two teams both appear in the text (we have research on it). */
+export function researchEventFor(text: string): { eventKey: string; matchup: string } | undefined {
+  const t = text.toLowerCase();
+  for (const report of REPORTS) {
+    for (const m of report.matches) {
+      if (t.includes(m.teamA.toLowerCase()) && t.includes(m.teamB.toLowerCase())) {
+        return { eventKey: m.eventKey, matchup: m.matchup };
+      }
+    }
+  }
+  return undefined;
 }

@@ -10,7 +10,7 @@ const listings: Listing[] = [
   { id: "k1", venue: "kalshi", title: "World Cup Game: Spain vs Portugal Winner?", outcome: "Reg Time: Spain", yesPrice: 0.51 },
   // The comparable proposition: advancing to the quarterfinals.
   { id: "p1", venue: "polymarket", title: "Will Spain reach the Quarterfinals?", outcome: "Spain (reach Quarterfinals)", yesPrice: 0.66 },
-  // Champion market — also a different bet.
+  // Champion market: also a different bet.
   { id: "h1", venue: "hyperliquid", title: "2026 World Cup Champion: Spain", group: { id: "q32", title: "2026 World Cup Champion" }, outcome: "Spain", yesPrice: 0.13 }
 ];
 
@@ -31,7 +31,7 @@ describe("edgeFor", () => {
     expect(e.ourProbability).toBeCloseTo(0.64);
     expect(e.marketPrice).toBeCloseTo(0.66);
     expect(e.edgePts).toBeCloseTo(-2, 0);
-    expect(e.verdict).toMatch(/market agrees/i);
+    expect(e.verdict).toMatch(/matches our probability/i);
   });
 
   it("calls out an underpriced pick", () => {

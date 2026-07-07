@@ -4,25 +4,36 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/events", label: "Events" },
-  { href: "/markets", label: "Markets" },
-  { href: "/research", label: "Research" }
+  { href: "/", label: "Home" },
+  { href: "/picks", label: "Picks" },
+  { href: "/track-record", label: "Track record" },
+  { href: "/markets", label: "Live prices" }
 ];
+
+const isActive = (href: string, pathname: string): boolean => {
+  if (href === "/") return pathname === "/";
+  if (href === "/picks") {
+    return (
+      pathname.startsWith("/picks") ||
+      pathname.startsWith("/event/") ||
+      pathname.startsWith("/research")
+    );
+  }
+  if (href === "/markets") {
+    return pathname.startsWith("/markets") || pathname.startsWith("/market/");
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+};
 
 export default function NavLinks() {
   const pathname = usePathname();
   return (
     <>
-      {LINKS.map((l) => {
-        const active = pathname === l.href || pathname.startsWith(`${l.href}/`) ||
-          (l.href === "/events" && pathname.startsWith("/event/")) ||
-          (l.href === "/markets" && pathname.startsWith("/market/"));
-        return (
-          <Link key={l.href} href={l.href} className={active ? "nav-active" : undefined}>
-            {l.label}
-          </Link>
-        );
-      })}
+      {LINKS.map((l) => (
+        <Link key={l.href} href={l.href} className={isActive(l.href, pathname) ? "nav-active" : undefined}>
+          {l.label}
+        </Link>
+      ))}
     </>
   );
 }

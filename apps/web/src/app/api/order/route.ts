@@ -3,7 +3,7 @@ import { prepareOrder, type OrderIntent } from "@saa/execution";
 import { getSettings } from "@/lib/settingsStore";
 
 /**
- * POST /api/order — run an order intent through the guardrails.
+ * POST /api/order: run an order intent through the guardrails.
  * Returns the PreparedOrder verdict: blocked (with reasons), awaiting_approval
  * (semi_auto), or would_submit (auto). Nothing is ever sent to a venue from
  * the scaffold: submitOrder is intentionally unimplemented (Step 3-4), and
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "body must be valid JSON" }, { status: 400 });
   }
-  // JSON.parse("null") succeeds — guard before property access.
+  // JSON.parse("null") succeeds: guard before property access.
   if (body === null || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "body must be a JSON object" }, { status: 400 });
   }
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
   const settings = getSettings();
   // Unknown market depth (e.g. Hyperliquid reports none) waives the liquidity
-  // check — same policy as the scan routes — instead of asserting "$0 liquidity".
+  // check (same policy as the scan routes) instead of asserting "$0 liquidity".
   const depth = Number(body.marketLiquidityUsd);
   const depthKnown = body.marketLiquidityUsd != null && Number.isFinite(depth);
 
@@ -71,12 +71,12 @@ export async function POST(req: Request) {
     marketLiquidityUsd: depthKnown ? depth : settings.minLiquidity
   };
 
-  // Exposure/PnL tracking needs persistence (roadmap Step 2) — a fresh scaffold
+  // Exposure/PnL tracking needs persistence (roadmap Step 2); a fresh scaffold
   // deployment has no open positions, so state starts at zero.
   const prepared = prepareOrder(intent, settings, { openExposureUsd: 0, realizedPnlTodayUsd: 0 });
   return NextResponse.json({
     ...prepared,
     modelEdgeUsed: hasModel,
-    notes: depthKnown ? [] : ["Market depth unknown for this venue — liquidity check waived"]
+    notes: depthKnown ? [] : ["Market depth unknown for this venue; liquidity check waived"]
   });
 }

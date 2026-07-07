@@ -17,7 +17,7 @@ export const nfl: SportPlaybook = {
     { key: "venue", label: "Home field", weight: 0.5, description: "Home/away, dome vs outdoor, crowd noise (false starts), surface" },
     { key: "conditions", label: "Weather", weight: 0.5, description: "Wind (passing/kicking), rain/snow, extreme cold or heat for outdoor games" },
     { key: "restTravel", label: "Rest and travel", weight: 0.6, description: "Short week (TNF), off bye, cross-country travel, timezone" },
-    { key: "trenches", label: "Line play", weight: 0.7, description: "OL/DL health and grades on both sides — games are won in the trenches" },
+    { key: "trenches", label: "Line play", weight: 0.7, description: "OL/DL health and grades on both sides; games are won in the trenches" },
     { key: "turnovers", label: "Turnover and special teams variance", weight: 0.4, description: "Turnover margin sustainability, FG kicker reliability, return game" }
   ],
   researchChecklist: [

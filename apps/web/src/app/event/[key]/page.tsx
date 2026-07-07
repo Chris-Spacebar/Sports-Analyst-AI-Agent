@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getEvent, pickProbability } from "@/lib/reports";
@@ -8,22 +8,24 @@ import NarrativeAnalysis from "@/components/NarrativeAnalysis";
 import ThesisSection from "@/components/ThesisSection";
 import { marketsForEvent, findTeam } from "@/lib/teamMatch";
 import { edgeFor } from "@/lib/edge";
+import { matchState } from "@/lib/kickoff";
+import { pct, cents } from "@/lib/format";
 import { useLiveListings } from "@/lib/useLiveListings";
-
-const pct = (p: number | null | undefined) => (p != null ? `${(p * 100).toFixed(1)}%` : "—");
-const cents = (p: number) => `${(p * 100).toFixed(1)}¢`;
 
 export default function EventPage() {
   const params = useParams<{ key: string }>();
   const eventKey = decodeURIComponent(params.key);
   const event = getEvent(eventKey);
 
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => setNow(new Date()), []);
+
   const { listings, errors, failed, loaded } = useLiveListings();
   const failedVenues = Object.keys(errors);
   const scanDegraded = failed || failedVenues.length > 0;
 
   useEffect(() => {
-    if (event) document.title = `${event.match.matchup} — Sports Analyst AI Agent`;
+    if (event) document.title = `${event.match.matchup} | Sports Analyst AI Agent`;
   }, [event]);
 
   const eventMarkets = useMemo(() => {
@@ -52,19 +54,20 @@ export default function EventPage() {
     return (
       <div>
         <div className="banner error">Unknown event.</div>
-        <Link href="/events">← All events</Link>
+        <Link href="/picks">← Picks</Link>
       </div>
     );
   }
 
   const { report, match } = event;
+  const state = matchState(match, now);
   const founderP = pickProbability(match);
   const hit = match.result.settled && match.result.winner
     ? match.result.winner.toLowerCase() === match.predictedWinner.toLowerCase()
     : null;
 
   // Single-team propositions ("Will Spain reach the Quarterfinals?") don't name
-  // both teams, so marketsForEvent misses them — surface the one the edge strip
+  // both teams, so marketsForEvent misses them; surface the one the edge strip
   // compares against at the top of the table.
   const tableMarkets =
     edge && !eventMarkets.some((l) => l.id === edge.listing.id && l.venue === edge.listing.venue)
@@ -80,62 +83,93 @@ export default function EventPage() {
   return (
     <div>
       <p className="muted">
-        <Link href="/events">← Events</Link>
+        <Link href="/picks">← Picks</Link>
       </p>
       <h1>{match.matchup}</h1>
       <div>
         <span className="tag sport">{report.sport}</span>
         <span className="tag">{report.competition} · {report.stage}</span>
         <span className="tag">{match.date}</span>
-        {match.result.settled ? (
+        {state === "settled" ? (
           <span className={hit ? "tag settled" : "tag missed"}>
             settled: {match.result.winner} advanced
           </span>
+        ) : state === "played" ? (
+          <span className="tag">played, grading in progress</span>
+        ) : now ? (
+          <span className="tag">kicks off {match.date}</span>
         ) : (
           <span className="tag">pending</span>
         )}
       </div>
 
-      {match.result.settled && (
+      {state === "settled" && (
         <div className={hit ? "banner success" : "banner error"}>
-          Prediction: {match.predictedWinner} ({match.chanceToAdvance}) —{" "}
-          {hit ? "CORRECT" : `missed (${match.result.winner} advanced)`}
+          {hit
+            ? `Prediction: ${match.predictedWinner} (${match.chanceToAdvance}). Correct.`
+            : `Prediction: ${match.predictedWinner} (${match.chanceToAdvance}). Missed: ${match.result.winner} advanced.`}
         </div>
       )}
 
-      {!match.result.settled && (
-        <div className="edge-strip">
-          <div className="edge-cell">
-            <div className="edge-num">{founderP != null ? pct(founderP) : match.chanceToAdvance}</div>
-            <div className="muted">our probability — {match.predictedWinner} advances</div>
-          </div>
-          {edge ? (
-            <>
-              <div className="edge-cell">
-                <div className="edge-num">{cents(edge.marketPrice)}</div>
-                <div className="muted">market price ({edge.venue})</div>
-              </div>
-              <div className="edge-cell">
-                <div className={`edge-num ${edge.edgePts >= 3 ? "edge-pos" : edge.edgePts <= -3 ? "edge-neg" : ""}`}>
-                  {edge.edgePts > 0 ? "+" : ""}
-                  {edge.edgePts.toFixed(1)} pts
-                </div>
-                <div className="muted">{edge.verdict}</div>
-              </div>
-            </>
-          ) : (
+      {state === "played" && (
+        <p className="played-note">
+          Match played. Our pre-kickoff probability no longer applies; the result will be graded shortly.
+        </p>
+      )}
+
+      {state === "upcoming" && (
+        <>
+          <div className="edge-strip">
             <div className="edge-cell">
-              <div className="muted">
-                {/* Never claim the market doesn't exist when the scan failed. */}
-                {!loaded
-                  ? "loading live market price…"
-                  : scanDegraded
-                    ? "live prices unavailable right now — can't compare against the market"
-                    : "no live market on this exact proposition (advancing) right now"}
-              </div>
+              <div className="edge-num">{founderP != null ? pct(founderP) : match.chanceToAdvance}</div>
+              <div className="muted">our probability that {match.predictedWinner} advances</div>
             </div>
+            {edge ? (
+              <>
+                <div className="edge-cell">
+                  <div className="edge-num">{cents(edge.marketPrice)}</div>
+                  <div className="muted">market price ({edge.venue})</div>
+                </div>
+                <div className="edge-cell">
+                  <div className={`edge-num ${edge.edgePts >= 3 ? "edge-pos" : edge.edgePts <= -3 ? "edge-neg" : ""}`}>
+                    {edge.edgePts > 0 ? "+" : ""}
+                    {edge.edgePts.toFixed(1)} pts
+                  </div>
+                  <div className="muted">{edge.verdict}</div>
+                </div>
+              </>
+            ) : (
+              <div className="edge-cell">
+                <div className="muted">
+                  {/* Never claim the market doesn't exist when the scan failed. */}
+                  {!loaded
+                    ? "loading live market price…"
+                    : scanDegraded
+                      ? "live prices unavailable right now; can't compare against the market"
+                      : "no live market on this exact proposition (advancing) right now"}
+                </div>
+              </div>
+            )}
+          </div>
+          <p className="muted">
+            Edge is our probability minus the market price, in percentage points. Our opinion, not
+            financial advice.
+          </p>
+          {/* A filled trade button only when we actually claim an edge; a plain link otherwise. */}
+          {edge?.listing.url && (
+            <p>
+              {edge.edgePts >= 3 ? (
+                <a className="trade-cta" href={edge.listing.url} target="_blank" rel="noreferrer">
+                  Trade {match.predictedWinner} on {edge.venue} ↗
+                </a>
+              ) : (
+                <a className="muted" href={edge.listing.url} target="_blank" rel="noreferrer">
+                  View the {edge.venue} market ↗
+                </a>
+              )}
+            </p>
           )}
-        </div>
+        </>
       )}
 
       <div className="detail-grid">
@@ -201,9 +235,7 @@ export default function EventPage() {
                 </tbody>
               </table>
               <p className="muted">
-                A market price ≈ the crowd&apos;s probability: buy at 52¢, win $1 if it happens. Careful
-                comparing bets — &quot;Reg Time&quot; markets pay only for a win in 90 minutes (a draw pays
-                neither team), which is a different bet from advancing.
+                {"Prices track the crowd's probability: 52¢ means 52%. Careful: 'Reg Time' markets pay only on a win in 90 minutes. That is a different bet from advancing."}
               </p>
             </>
           )}

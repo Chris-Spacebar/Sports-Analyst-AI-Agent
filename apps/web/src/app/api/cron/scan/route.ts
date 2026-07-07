@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const keywords = enabled.flatMap((p) => p.keywords);
   const excludeKeywords = enabled.flatMap((p) => p.excludeKeywords ?? []);
 
-  // Empty keyword list = "no filter" to the adapters — with no sports enabled, scan nothing.
+  // Empty keyword list = "no filter" to the adapters; with no sports enabled, scan nothing.
   if (keywords.length === 0) {
     return NextResponse.json({ ok: true, scannedAt: new Date().toISOString(), totalListings: 0, bySport: {}, errors: {} });
   }

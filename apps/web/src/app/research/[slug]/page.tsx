@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getReport, gradeReport } from "@/lib/reports";
@@ -8,25 +8,23 @@ import NarrativeAnalysis from "@/components/NarrativeAnalysis";
 import Scorecard from "@/components/Scorecard";
 import { groupListings, type Listing } from "@/lib/marketGroups";
 import { findTeam } from "@/lib/teamMatch";
+import { pct } from "@/lib/format";
 import { useLiveListings } from "@/lib/useLiveListings";
-
-const pct = (p: number | null | undefined) => (p != null ? `${(p * 100).toFixed(1)}%` : "—");
 
 export default function ReportPage() {
   const params = useParams<{ slug: string }>();
   const report = getReport(decodeURIComponent(params.slug));
   const { listings, failed, loaded } = useLiveListings();
-  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
-    if (report) document.title = `${report.title} — Sports Analyst AI Agent`;
+    if (report) document.title = `${report.title} | Sports Analyst AI Agent`;
   }, [report]);
 
   if (!report) {
     return (
       <div>
         <div className="banner error">Unknown report.</div>
-        <Link href="/research">← Research</Link>
+        <Link href="/picks">← Picks</Link>
       </div>
     );
   }
@@ -43,7 +41,7 @@ export default function ReportPage() {
   return (
     <div>
       <p className="muted">
-        <Link href="/research">← Research</Link>
+        <Link href="/picks">← Picks</Link>
       </p>
       <h1>{report.title}</h1>
       <p className="subtitle">
@@ -55,19 +53,8 @@ export default function ReportPage() {
         <Scorecard card={card} label={`${report.stage} picks, graded as markets settle`} />
       </div>
 
-      <p>
-        {report.xlsxPath && (
-          <a href={report.xlsxPath} download className="button-link">
-            ⬇ Download the full report (.xlsx)
-          </a>
-        )}{" "}
-        <span className="muted">
-          Trading features coming soon — trade these markets on Hyperliquid, Polymarket, or Kalshi.
-        </span>
-      </p>
-
       <div className="card">
-        <h2>{report.stage} — the eight picks</h2>
+        <h2>{report.stage}: the picks</h2>
         <p className="muted">
           {!loaded
             ? "loading live odds…"
@@ -77,6 +64,7 @@ export default function ReportPage() {
                 ? "live odds unavailable right now"
                 : "champion market not in the current scan"}
         </p>
+        {report.howToRead && <p className="muted">{report.howToRead}</p>}
         <div className="table-wrap">
           <table className="table">
             <thead>
@@ -123,9 +111,9 @@ export default function ReportPage() {
                     </td>
                     <td>
                       {champion
-                        ? `${m.teamA}: ${a ? pct(a.yesPrice) : "out"} · ${m.teamB}: ${b ? pct(b.yesPrice) : "out"}`
+                        ? `${m.teamA}: ${a ? pct(a.yesPrice, 1) : "out"} · ${m.teamB}: ${b ? pct(b.yesPrice, 1) : "out"}`
                         : loaded
-                          ? "—"
+                          ? "n/a"
                           : "…"}
                     </td>
                   </tr>
@@ -144,7 +132,7 @@ export default function ReportPage() {
               <strong>
                 {m.num}. {m.matchup}
               </strong>{" "}
-              — pick: {m.predictedWinner} ({m.chanceToAdvance}), {m.predictedScore} ·{" "}
+              · pick: {m.predictedWinner} ({m.chanceToAdvance}), {m.predictedScore} ·{" "}
               <Link href={`/event/${m.eventKey}`}>event page →</Link>
             </summary>
             <NarrativeAnalysis match={m} />
@@ -159,30 +147,19 @@ export default function ReportPage() {
             <li key={q}>{q}</li>
           ))}
         </ul>
-        {report.howToRead && <p className="muted">{report.howToRead}</p>}
       </div>
 
-      <div className="card">
-        <h2>Ask the analyst</h2>
-        <div className="ticket-wrap">
-          <div className="coming-soon-overlay">
-            <strong>Coming soon</strong>
-            <p className="muted">
-              Prompt-driven AI analysis is on the way. For now, dig into the report above.
-            </p>
-          </div>
-          <div className="ticket-blur">
-            <textarea
-              className="prompt-box"
-              rows={3}
-              placeholder="Ask about a match, a team, or a market…"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            <button disabled>Get analysis</button>
-          </div>
-        </div>
-      </div>
+      <p className="muted">Ask the analyst: prompt-driven analysis is coming soon.</p>
+      <p className="muted">
+        On-site trading is coming soon. Until then, trade on Kalshi, Polymarket, or Hyperliquid.
+      </p>
+      {report.xlsxPath && (
+        <p className="muted">
+          <a href={report.xlsxPath} download>
+            Download the source workbook (.xlsx)
+          </a>
+        </p>
+      )}
     </div>
   );
 }

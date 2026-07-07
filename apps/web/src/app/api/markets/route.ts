@@ -11,7 +11,7 @@ export async function GET() {
   const keywords = enabled.flatMap((p) => p.keywords);
   const excludeKeywords = enabled.flatMap((p) => p.excludeKeywords ?? []);
 
-  // No sports enabled means nothing to scan — an empty keyword list would tell
+  // No sports enabled means nothing to scan: an empty keyword list would tell
   // the adapters "no filter" and return every market on every venue.
   if (keywords.length === 0) {
     return NextResponse.json({ listings: [], errors: {}, scannedAt: new Date().toISOString() });

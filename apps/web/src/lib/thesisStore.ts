@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Thesis persistence interface — Phase B ships the INTERFACE against local
+ * Thesis persistence interface. Phase B ships the INTERFACE against local
  * storage only; swap `localThesisRepository` for a Supabase-backed
  * implementation when accounts land. Nothing outside this file should know
  * where theses live.
@@ -50,7 +50,7 @@ function read<T extends { eventKey: string; createdAt: string }>(key: string): T
     const v = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(v)) return [];
     // One malformed entry (extension, older schema) must not crash every page
-    // forever — drop anything without the fields the sort/filter code touches.
+    // forever: drop anything without the fields the sort/filter code touches.
     return v.filter(
       (x): x is T =>
         x != null && typeof x === "object" && typeof x.eventKey === "string" && typeof x.createdAt === "string"
@@ -64,7 +64,7 @@ function write<T>(key: string, items: T[]) {
   try {
     localStorage.setItem(key, JSON.stringify(items));
   } catch {
-    // Storage full/unavailable — the session keeps working, entries just don't persist.
+    // Storage full/unavailable: the session keeps working, entries just don't persist.
   }
 }
 

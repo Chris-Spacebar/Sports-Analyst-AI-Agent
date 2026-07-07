@@ -3,7 +3,7 @@ import { DEFAULT_SETTINGS, type AgentMode, type AgentSettings } from "./guardrai
 export const AGENT_MODES: AgentMode[] = ["analysis", "semi_auto", "auto"];
 export const KNOWN_VENUES = ["kalshi", "polymarket", "hyperliquid"] as const;
 
-/** Bounds for every numeric setting — validation and UI share these. */
+/** Bounds for every numeric setting; validation and UI share these. */
 export const SETTING_BOUNDS: Record<
   "minEdge" | "minConfidence" | "maxStakePerMarket" | "maxTotalExposure" | "dailyLossLimit" | "minLiquidity",
   { min: number; max: number }

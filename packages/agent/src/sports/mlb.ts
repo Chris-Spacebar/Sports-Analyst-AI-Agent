@@ -16,7 +16,7 @@ export const mlb: SportPlaybook = {
     { key: "defense", label: "Defense and catching", weight: 0.4, description: "OAA/DRS, framing behind the plate, error-prone infields" },
     { key: "schedule", label: "Schedule and travel", weight: 0.5, description: "Getaway days, doubleheaders, cross-country travel, day game after night game" },
     { key: "umpire", label: "Umpire and officiating", weight: 0.2, description: "Home plate umpire zone size (affects totals more than sides)" },
-    { key: "h2h", label: "Season series and familiarity", weight: 0.3, description: "Hitter vs pitcher history (small samples — weigh lightly), divisional familiarity" }
+    { key: "h2h", label: "Season series and familiarity", weight: 0.3, description: "Hitter vs pitcher history (small samples; weigh lightly), divisional familiarity" }
   ],
   researchChecklist: [
     "Confirmed starting pitchers and lineup cards",

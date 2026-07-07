@@ -39,7 +39,7 @@ describe("gradeReport", () => {
   it("grades settled picks and counts pending ones", () => {
     const card = gradeReport(r16);
     expect(card.totalPicks).toBe(8);
-    // Matches 1-2 settled (Morocco, France advanced) — both picked correctly.
+    // Matches 1-2 settled (Morocco, France advanced), both picked correctly.
     expect(card.settled).toBe(2);
     expect(card.correct).toBe(2);
     expect(card.pending).toBe(6);
@@ -81,7 +81,7 @@ describe("overallScorecard", () => {
     const card = overallScorecard([r16, b]);
     expect(card.settled).toBe(3);
     expect(card.correct).toBe(2);
-    // True per-pick MSE: ((1-.62)^2 + (1-.85)^2 + (0-.9)^2) / 3 — NOT (0.083 + 0.81) / 2.
+    // True per-pick MSE: ((1-.62)^2 + (1-.85)^2 + (0-.9)^2) / 3, NOT (0.083 + 0.81) / 2.
     expect(card.brierScore).toBeCloseTo(((1 - 0.62) ** 2 + (1 - 0.85) ** 2 + 0.9 ** 2) / 3, 3);
   });
 

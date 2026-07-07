@@ -42,7 +42,12 @@ export default function WalletConnect() {
     );
   }
   return (
-    <button type="button" className="wallet-btn" onClick={connect}>
+    <button
+      type="button"
+      className="wallet-btn"
+      title="Connects your wallet for when on-site trading launches. Display-only today."
+      onClick={connect}
+    >
       {label}
     </button>
   );

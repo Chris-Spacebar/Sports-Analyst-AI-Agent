@@ -1,10 +1,16 @@
 import wc2026RoundOf16 from "@/content/reports/wc2026-round-of-16.json";
+import meta from "@/content/meta.json";
 
 /**
- * Founder research reports — the content collection. Publishing a new report
+ * Founder research reports: the content collection. Publishing a new report
  * means dropping a JSON file in src/content/reports (converted from the
  * founder's workbook) and importing it here; nothing else changes.
  */
+
+export const SITE_META = meta as { resultsUpdatedAt: string; nextReportNote: string };
+
+/** Below this many settled picks, calibration stats are noise, not signal. */
+export const MIN_CALIBRATION_SAMPLE = 20;
 
 export interface ReportSection {
   name: string;
@@ -19,6 +25,8 @@ export interface ReportMatch {
   teamB: string;
   venue: string;
   kickoff: string;
+  /** Required so state (upcoming/played) can always be derived; runtime guards still tolerate legacy data. */
+  kickoffISO: string;
   weather: string;
   predictedWinner: string;
   chanceToAdvance: string;
@@ -71,9 +79,9 @@ export interface Scorecard {
 }
 
 export interface MatchNarrative {
-  /** The hook, e.g. "The Iberian derby — the most complete team against Ronaldo's last stand". */
+  /** The hook, e.g. "The Iberian derby: the most complete team against Ronaldo's last stand". */
   oneLine?: string;
-  /** The Final Verdict decision paragraph — the argument's conclusion. */
+  /** The Final Verdict decision paragraph, the argument's conclusion. */
   decision?: string;
   sources?: string;
   /** Per-team pros/cons pulled from the Boosts and Hindrances section. */
@@ -83,7 +91,7 @@ export interface MatchNarrative {
   };
   /** Supporting-evidence sections (Team Comparison, Market view, H2H). */
   rest: ReportSection[];
-  /** Venue/kickoff/conditions — appendix material, collapsed by default. */
+  /** Venue/kickoff/conditions: appendix material, collapsed by default. */
   matchInfo?: ReportSection;
 }
 
@@ -160,7 +168,7 @@ function gradeMatches(matches: ReportMatch[]): Scorecard {
   };
 }
 
-/** Grade a report's picks against settled results — the founder's public track record. */
+/** Grade a report's picks against settled results: the founder's public track record. */
 export const gradeReport = (report: Report): Scorecard => gradeMatches(report.matches);
 
 /**

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { localThesisRepository, type EventComment, type Thesis } from "@/lib/thesisStore";
-
-const pct = (p: number | null | undefined) => (p != null ? `${(p * 100).toFixed(0)}%` : "—");
+import { pct } from "@/lib/format";
 
 export function ThesisCard({ t }: { t: Thesis }) {
   return (
@@ -33,7 +32,7 @@ interface OutcomeOption {
 
 /**
  * Community theses for one event: feed + composer + discussion.
- * Persistence is the swappable ThesisRepository — local-only until accounts land.
+ * Persistence is the swappable ThesisRepository, local-only until accounts land.
  */
 export default function ThesisSection({
   eventKey,
@@ -44,7 +43,7 @@ export default function ThesisSection({
 }) {
   const repo = localThesisRepository;
   const [theses, setTheses] = useState<Thesis[]>([]);
-  // Start empty — a render-time localStorage read would make SSR and client
+  // Start empty: a render-time localStorage read would make SSR and client
   // HTML diverge (hydration failure); the effect below loads after mount.
   const [comments, setComments] = useState<EventComment[]>([]);
   const [author, setAuthor] = useState("");
@@ -59,7 +58,7 @@ export default function ThesisSection({
   const [commentBody, setCommentBody] = useState("");
   const [commentAuthor, setCommentAuthor] = useState("");
 
-  // localStorage is browser-only — load after mount to avoid hydration mismatch.
+  // localStorage is browser-only; load after mount to avoid hydration mismatch.
   useEffect(() => {
     setTheses(repo.listTheses(eventKey));
     setComments(repo.listComments(eventKey));
@@ -115,9 +114,9 @@ export default function ThesisSection({
       <div className="card">
         <h2>Community theses</h2>
         <p className="muted">
-          Stored locally in your browser for now — accounts and cloud publishing arrive with sign-in.
+          Stored locally in your browser for now. Accounts and cloud publishing arrive with sign-in.
         </p>
-        {theses.length === 0 && <p className="muted">No theses yet — yours can be the first.</p>}
+        {theses.length === 0 && <p className="muted">No theses yet. Yours can be the first.</p>}
         {theses.map((t) => (
           <ThesisCard key={t.id} t={t} />
         ))}
@@ -153,7 +152,7 @@ export default function ThesisSection({
               <option value="">Choose an outcome…</option>
               {outcomeOptions.map((o) => (
                 <option key={`${o.venue}:${o.label}`} value={o.label}>
-                  {o.label} ({o.venue}{o.price != null ? ` — ${(o.price * 100).toFixed(1)}%` : ""})
+                  {o.label} ({o.venue}{o.price != null ? `, ${(o.price * 100).toFixed(1)}%` : ""})
                 </option>
               ))}
             </select>

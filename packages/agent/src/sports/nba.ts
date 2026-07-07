@@ -6,7 +6,7 @@ export const nba: SportPlaybook = {
   leagues: ["NBA", "FIBA World Cup", "EuroLeague", "NCAA Basketball"],
   keywords: ["nba", "basketball", "fiba", "euroleague", "ncaab", "march madness"],
   factors: [
-    { key: "availability", label: "Star availability", weight: 1.0, description: "Injury report, rest days (load management), minutes restrictions — the single biggest NBA factor" },
+    { key: "availability", label: "Star availability", weight: 1.0, description: "Injury report, rest days (load management), minutes restrictions; the single biggest NBA factor" },
     { key: "form", label: "Team form and ratings", weight: 0.9, description: "Net rating last 10-15 games, offensive/defensive rating, quality of recent opponents" },
     { key: "matchup", label: "Stylistic matchup", weight: 0.7, description: "Pace, 3PT volume vs perimeter defense, rim protection vs paint scoring, rebounding edge" },
     { key: "keyplayers", label: "Star form", weight: 0.8, description: "Best player's recent usage/efficiency, matchup vs primary defender, playoff riser/faller history" },

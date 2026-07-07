@@ -14,7 +14,7 @@ export default function ReportSections({ sections }: { sections?: ReportSection[
                 {s.rows.map((row, i) => (
                   <tr key={i}>
                     {row.map((cell, j) => (
-                      // Always one <td> per cell — skipping nulls would shift
+                      // Always one <td> per cell: skipping nulls would shift
                       // later cells into the wrong team's column.
                       <td key={j} className={j === 0 ? "cell-label" : undefined}>
                         {cell}

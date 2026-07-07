@@ -3,7 +3,7 @@ import { pickProbability, type ReportMatch } from "@/lib/reports";
 
 /**
  * The product's core claim: our probability vs the market's price on the SAME
- * proposition. A Round-of-16 pick means "advances to the quarterfinals" —
+ * proposition. A Round-of-16 pick means "advances to the quarterfinals";
  * regulation-time winner markets (a draw pays neither team) and champion
  * markets are different bets and must never be compared against the pick.
  */
@@ -42,11 +42,11 @@ export function edgeFor(match: ReportMatch, listings: Listing[]): EdgeInfo | und
   const edgePts = Number(((p - listing.yesPrice) * 100).toFixed(1));
   let verdict: string;
   if (Math.abs(edgePts) < 3) {
-    verdict = "market agrees with us — little edge left";
+    verdict = "the market matches our probability; little edge";
   } else if (edgePts > 0) {
     verdict = `we think the market underprices ${match.predictedWinner} by ${edgePts.toFixed(0)} points`;
   } else {
-    verdict = `the market is more confident than us — we see no value at this price`;
+    verdict = "the market price is above our probability; no value at this price";
   }
   return {
     team: match.predictedWinner,

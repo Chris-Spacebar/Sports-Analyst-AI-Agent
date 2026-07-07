@@ -19,7 +19,7 @@ function buildContext(prompt: string, liveOdds: AnalystRequest["liveOdds"]): str
     lines.push(`\n${report.stage.toUpperCase()} OVERVIEW:`);
     for (const m of report.matches) {
       lines.push(
-        `${m.num}. ${m.date} — ${m.matchup} @ ${m.venue}, ${m.kickoff}. Weather: ${m.weather}. ` +
+        `${m.num}. ${m.date}: ${m.matchup} @ ${m.venue}, ${m.kickoff}. Weather: ${m.weather}. ` +
           `Pick: ${m.predictedWinner} (${m.chanceToAdvance}), predicted ${m.predictedScore}. ` +
           `${m.result.settled ? `RESULT: ${m.result.winner} advanced. ` : ""}${m.rationale}`
       );
@@ -30,11 +30,11 @@ function buildContext(prompt: string, liveOdds: AnalystRequest["liveOdds"]): str
       (m) => p.includes(m.teamA.toLowerCase()) || p.includes(m.teamB.toLowerCase())
     );
     for (const m of mentioned) {
-      lines.push(`\nFULL ANALYSIS — ${m.matchup}:`);
+      lines.push(`\nFULL ANALYSIS (${m.matchup}):`);
       for (const s of m.sections ?? []) {
         lines.push(`[${s.name}]`);
         for (const row of s.rows) {
-          lines.push(row.filter((c) => c != null).join(" — "));
+          lines.push(row.filter((c) => c != null).join(": "));
         }
       }
     }
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   if (body.liveOdds !== undefined && !Array.isArray(body.liveOdds)) {
     return NextResponse.json({ error: "liveOdds must be an array" }, { status: 400 });
   }
-  // Client-supplied strings reach the system prompt — keep them small and typed.
+  // Client-supplied strings reach the system prompt: keep them small and typed.
   const liveOdds = (body.liveOdds ?? [])
     .filter((o) => o && typeof o === "object" && typeof o.team === "string" && typeof o.price === "number")
     .slice(0, 64)
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     stop_reason?: string;
   };
   if (data.stop_reason === "max_tokens") {
-    return NextResponse.json({ error: "analysis truncated — try a narrower question" }, { status: 502 });
+    return NextResponse.json({ error: "analysis truncated; try a narrower question" }, { status: 502 });
   }
   const analysis = data.content
     .filter((b) => b.type === "text" && b.text)

@@ -2,7 +2,7 @@ import type { MarketListing, ScanOptions, VenueAdapter } from "./types.js";
 import { matchesKeywords } from "./match.js";
 
 /**
- * Kalshi adapter — public market data (no auth required for reads).
+ * Kalshi adapter: public market data (no auth required for reads).
  * Docs: https://docs.kalshi.com
  *
  * Sports markets are discovered via GET /series?category=Sports (a flat
@@ -52,7 +52,7 @@ const num = (s: string | null | undefined): number | null => {
  * A series matches when a keyword appears in its title/tags (whole word,
  * e.g. keyword "baseball" vs tag "Baseball") or inside its ticker with spaces
  * stripped (e.g. keyword "fifa" vs ticker "KXFIFAWGAME"). Ticker substring
- * matching is only applied to keywords of 4+ characters — short ones collide
+ * matching is only applied to keywords of 4+ characters; short ones collide
  * wildly ("fc" is inside KXUFCMOF, KXGOLFCAT, KXIIHFCHAMP; "mlb" inside the
  * esports series KXEWCMLBB). Exclude keywords (e.g. "cricket", "darts") veto
  * a series regardless of positive matches.
@@ -72,7 +72,7 @@ export function seriesMatches(s: KalshiSeries, keywords?: string[], excludeKeywo
 /**
  * Pick which matched series to query: round-robin across sport tags so every
  * enabled sport gets coverage, preferring live game-winner series and flagship
- * (shorter) tickers. Tag groups are visited largest-first — real sports have
+ * (shorter) tickers. Tag groups are visited largest-first; real sports have
  * hundreds of series (Soccer 471, Basketball 442, ...) while false-positive
  * tags have a handful, so junk cannot displace an enabled sport from the
  * budget. Deterministic. Exported for unit tests.
@@ -115,7 +115,7 @@ export function toListing(m: KalshiMarket, seriesTitle?: string): MarketListing 
   const last = num(m.last_price_dollars);
   const bid = num(m.yes_bid_dollars);
   const ask = num(m.yes_ask_dollars);
-  // Untraded markets report last_price_dollars "0.0000" — fall back to the book mid.
+  // Untraded markets report last_price_dollars "0.0000"; fall back to the book mid.
   let yesPrice: number | null = last != null && last > 0 ? last : null;
   if (yesPrice == null && bid != null && ask != null && ask > 0) yesPrice = (bid + ask) / 2;
 
@@ -123,7 +123,7 @@ export function toListing(m: KalshiMarket, seriesTitle?: string): MarketListing 
   // paths 404, and the API exposes no event slug for deeper links.
   const seriesTicker = (m.event_ticker ?? m.ticker).split("-")[0].toLowerCase();
 
-  // Market titles rarely name the league ("Colorado vs LA Winner?") — prefix
+  // Market titles rarely name the league ("Colorado vs LA Winner?"); prefix
   // the series title so sport detection and humans get the context.
   const title = seriesTitle && !m.title.toLowerCase().includes(seriesTitle.toLowerCase())
     ? `${seriesTitle}: ${m.title}`
@@ -167,7 +167,7 @@ export const kalshi: VenueAdapter = {
     const { series = [] } = await getJson<{ series?: KalshiSeries[] }>("/series?category=Sports");
     const picked = prioritizeSeries(series.filter((s) => seriesMatches(s, opts.keywords, opts.excludeKeywords)));
 
-    // Kalshi's public rate limit is ~10 req/s — fetch in small, spaced batches.
+    // Kalshi's public rate limit is ~10 req/s; fetch in small, spaced batches.
     const results: MarketListing[][] = [];
     const BATCH = 4;
     for (let i = 0; i < picked.length; i += BATCH) {

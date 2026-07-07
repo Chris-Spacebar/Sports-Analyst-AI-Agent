@@ -2,10 +2,10 @@ import type { MarketListing, ScanOptions, VenueAdapter } from "./types.js";
 import { matchesKeywords } from "./match.js";
 
 /**
- * Polymarket adapter — public market data via the Gamma API (no auth for reads).
+ * Polymarket adapter: public market data via the Gamma API (no auth for reads).
  * Docs: https://docs.polymarket.com
  * Trading goes through the CLOB API with wallet-derived credentials (see
- * packages/execution). Polymarket has US access restrictions — check your
+ * packages/execution). Polymarket has US access restrictions; check your
  * jurisdiction before trading.
  */
 const GAMMA = "https://gamma-api.polymarket.com";
@@ -41,7 +41,7 @@ const parseJsonArray = (s?: string): string[] => {
 
 /**
  * Map one Gamma market to a normalized listing. Exported for unit tests.
- * yesPrice is only populated when the market actually has a YES outcome —
+ * yesPrice is only populated when the market actually has a YES outcome;
  * moneyline markets (team-name outcomes) and Up/Down markets get null instead
  * of an arbitrary first-outcome price.
  */

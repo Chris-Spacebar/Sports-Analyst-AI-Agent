@@ -2,7 +2,7 @@ import type { MarketListing, ScanOptions, VenueAdapter } from "./types.js";
 import { matchesKeywords } from "./match.js";
 
 /**
- * Hyperliquid HIP-4 adapter — outcome (event/prediction) markets, live on
+ * Hyperliquid HIP-4 adapter: outcome (event/prediction) markets, live on
  * mainnet since 2026-05-02. Public read API, no auth:
  *   - POST /info {"type":"outcomeMeta"} lists questions and their outcomes
  *   - POST /info {"type":"allMids"} carries outcome mids under "#"-prefixed
@@ -59,7 +59,7 @@ export function toListings(meta: OutcomeMeta, mids: AllMids, opts: ScanOptions =
       if (!outcome) continue;
 
       const title = `${q.name}: ${outcome.name}`;
-      // Match keywords against the description too — outcome descriptions carry
+      // Match keywords against the description too; outcome descriptions carry
       // context the short title lacks (e.g. "...2026 FIFA World Cup champion").
       if (!matchesKeywords(`${title} ${outcome.description ?? ""}`, opts.keywords, opts.excludeKeywords)) continue;
 

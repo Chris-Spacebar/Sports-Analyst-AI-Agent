@@ -3,7 +3,7 @@ export type AgentMode = "analysis" | "semi_auto" | "auto";
 
 export interface AgentSettings {
   mode: AgentMode;
-  /** Sports currently enabled — mirrors your phase rollout. */
+  /** Sports currently enabled; mirrors your phase rollout. */
   sportsEnabled: string[];
   /** Venues you allow the agent to look at / act on. */
   venuesEnabled: Array<"kalshi" | "polymarket" | "hyperliquid">;
@@ -19,7 +19,7 @@ export interface AgentSettings {
   dailyLossLimit: number;
   /** Minimum market liquidity/volume to consider (avoids thin markets). */
   minLiquidity: number;
-  /** Master off switch — when true, nothing executes anywhere. */
+  /** Master off switch: when true, nothing executes anywhere. */
   killSwitch: boolean;
 }
 
@@ -53,7 +53,7 @@ export interface GuardrailResult {
   reasons: string[];
 }
 
-/** Pure function — easy to unit test. Checks one intent against settings + current exposure. */
+/** Pure function; easy to unit test. Checks one intent against settings + current exposure. */
 export function checkGuardrails(
   intent: OrderIntent,
   settings: AgentSettings,

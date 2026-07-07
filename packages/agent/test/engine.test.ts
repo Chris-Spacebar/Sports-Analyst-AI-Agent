@@ -3,7 +3,7 @@ import { computeEdges, computeProbability } from "../src/engine.js";
 import type { EventInput, MarketQuote } from "../src/types.js";
 
 const event: EventInput = {
-  title: "Mexico vs England — World Cup Round of 16",
+  title: "Mexico vs England - World Cup Round of 16",
   sport: "soccer",
   sideA: "Mexico",
   sideB: "England"

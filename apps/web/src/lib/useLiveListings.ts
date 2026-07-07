@@ -15,7 +15,7 @@ export function useLiveListings(): {
   listings: Listing[];
   /** Per-venue scan errors from /api/markets (keys are venue names). */
   errors: Record<string, string>;
-  /** True when the scan request itself failed — no venue data at all. */
+  /** True when the scan request itself failed (no venue data at all). */
   failed: boolean;
   loaded: boolean;
 } {
@@ -34,7 +34,7 @@ export function useLiveListings(): {
         return;
       }
     } catch {
-      // corrupt cache — fall through to a fresh scan
+      // corrupt cache: fall through to a fresh scan
     }
     fetch("/api/markets")
       .then((r) => r.json())
@@ -48,7 +48,7 @@ export function useLiveListings(): {
             JSON.stringify({ at: Date.now(), listings: data.listings ?? [], errors: data.errors ?? {} })
           );
         } catch {
-          // storage full — caching is best-effort
+          // storage full: caching is best-effort
         }
       })
       .catch(() => {

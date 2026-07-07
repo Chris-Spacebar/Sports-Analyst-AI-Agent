@@ -31,7 +31,7 @@ export interface SportPlaybook {
 }
 
 export interface EventInput {
-  /** e.g. "Mexico vs England — World Cup Round of 16" */
+  /** e.g. "Mexico vs England - World Cup Round of 16" */
   title: string;
   sport: Sport;
   league?: string;
@@ -45,7 +45,7 @@ export interface Analysis {
   event: EventInput;
   /** P(sideA wins / YES resolves), 0..1 */
   modelProbability: number;
-  /** 0..1 — how much of the playbook's factor weight was actually scored. */
+  /** 0..1: how much of the playbook's factor weight was actually scored. */
   confidence: number;
   factorScores: FactorScore[];
   narrative?: string;
