@@ -1,6 +1,19 @@
 ---
-description: Settle finished picks against verified results and refresh freshness stamps
+name: update-results
+description: Settle finished picks against verified results and refresh the freshness stamps for the Sports Analyst AI Agent site. Use when the user says update results, grade the picks, settle finished matches, run the daily update, or types /update-results.
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  - WebSearch
+  - WebFetch
+  - Bash
 ---
+
+# /update-results
 
 Grade every finished pick against verified results, snapshot market prices, and refresh the freshness stamps. Work from the repo root at /Users/kyunghojung/Sports-Analyst-AI-Agent.
 
