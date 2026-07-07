@@ -665,7 +665,8 @@
    ],
    "eventKey": "wc2026-r16-brazil-norway",
    "result": {
-    "settled": false
+    "settled": true,
+    "winner": "Norway"
    }
   },
   {
@@ -877,7 +878,8 @@
    ],
    "eventKey": "wc2026-r16-mexico-england",
    "result": {
-    "settled": false
+    "settled": true,
+    "winner": "England"
    }
   },
   {
@@ -1089,7 +1091,8 @@
    ],
    "eventKey": "wc2026-r16-spain-portugal",
    "result": {
-    "settled": false
+    "settled": true,
+    "winner": "Spain"
    }
   },
   {
@@ -1306,7 +1309,8 @@
    ],
    "eventKey": "wc2026-r16-belgium-usa",
    "result": {
-    "settled": false
+    "settled": true,
+    "winner": "Belgium"
    }
   },
   {
