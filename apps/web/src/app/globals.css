@@ -400,3 +400,167 @@ a.market-card:hover { border-color: var(--line-hi); background: var(--bg-row); }
 .site-footer p { margin: 5px 0; }
 .site-footer a { color: var(--txt); }
 .site-footer a:hover { color: var(--amb); }
+
+/* ---- the floor: community theses, graded when the market settles ---- */
+.floor { margin: 30px 0 8px; }
+
+.floor-strip {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  padding-bottom: 9px; border-bottom: 1px solid var(--line);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--dim);
+}
+.floor-strip .dot {
+  display: inline-block; width: 6px; height: 6px; background: var(--amb);
+  margin-right: 0.4em; vertical-align: 1px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .floor-strip .dot { animation: desk-blink 2.4s steps(1) infinite; }
+}
+
+.floor-head {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
+  gap: 10px 18px; margin: 14px 0 12px;
+}
+.floor-head h2 {
+  font-family: var(--disp); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; font-size: 1.35rem; color: var(--hi); margin: 0;
+}
+.floor-head .sub { color: var(--dim); font-size: 12.5px; margin: 4px 0 0; max-width: 52ch; }
+.floor-head button { margin-top: 0; }
+
+.floor-cols { display: grid; grid-template-columns: 1.85fr 0.9fr; gap: 14px; align-items: start; }
+@media (max-width: 820px) { .floor-cols { grid-template-columns: 1fr; } }
+
+/* ---- thesis feed: a dense blotter of the crowd's calls ---- */
+.thesis-feed { border: 1px solid var(--line); background: var(--bg-panel); }
+.floor-empty {
+  padding: 22px 16px; text-align: center; color: var(--dim);
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+}
+
+.thesis-row { padding: 13px 15px; border-bottom: 1px solid var(--line); }
+.thesis-row:last-child { border-bottom: 0; }
+.thesis-row:hover { background: var(--bg-row); }
+
+.who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.handle { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; color: var(--hi); }
+.rep { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.rep b { color: var(--grn); font-weight: 500; }
+.ago {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--dim); margin-left: auto;
+}
+
+.thesis-event {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--dim); margin: 9px 0 5px;
+}
+
+.thesis-call { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 3px 0; }
+.pick {
+  font-family: var(--disp); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.03em; font-size: 15px; color: var(--hi);
+}
+.num { font-family: var(--mono); font-size: 14px; color: var(--hi); }
+.vs { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--dim); }
+
+.thesis-rationale {
+  font-size: 13px; color: var(--dim); line-height: 1.5; margin: 6px 0 0;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.thesis-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 11px; }
+.thesis-grade {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--dim); margin-left: auto;
+}
+.thesis-grade.hit, .thesis-grade .hit { color: var(--grn); }
+.thesis-grade.miss, .thesis-grade .miss { color: var(--red); }
+
+/* ---- tail / fade: one reaction per device, mono ticket buttons ---- */
+.tf {
+  display: inline-flex; align-items: baseline; gap: 6px; margin: 0;
+  padding: 5px 10px; border: 1px solid var(--line); background: var(--bg); color: var(--txt);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  font-weight: 400; cursor: pointer;
+}
+.tf:hover { background: var(--bg-row); border-color: var(--line-hi); }
+.tf.on { border-color: var(--amb); color: var(--amb); background: transparent; }
+.tf.on:hover { background: transparent; border-color: var(--amb); }
+.tf .k { color: var(--dim); }
+.tf.tail .k, .tf .k.tail { color: var(--grn); }
+.tf.fade .k, .tf .k.fade { color: var(--red); }
+.tf .n { color: var(--dim); }
+
+.discuss {
+  display: inline-flex; align-items: baseline; gap: 6px; margin: 0;
+  padding: 5px 10px; border: 1px solid var(--line); background: var(--bg); color: var(--txt);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  font-weight: 400; cursor: pointer;
+}
+.discuss:hover { background: var(--bg-row); border-color: var(--line-hi); }
+.discuss .n { color: var(--dim); }
+
+/* ---- leaderboard: forecasters ranked by Brier, the house included ---- */
+.cboard { border: 1px solid var(--line); background: var(--bg-panel); align-self: start; }
+.cboard h3 {
+  font-family: var(--disp); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 0.95rem; color: var(--hi); margin: 0; padding: 12px 14px;
+  border-bottom: 1px solid var(--line-hi);
+}
+.clb-row {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 6px 10px;
+  padding: 9px 14px; border-bottom: 1px solid var(--line);
+}
+.clb-row:last-child { border-bottom: 0; }
+.clb-row.house { border-left: 2px solid var(--amb); }
+.clb-rank { font-family: var(--mono); font-size: 12px; color: var(--amb); }
+.clb-handle { font-family: var(--mono); font-size: 12px; color: var(--hi); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.clb-row.house .clb-handle { color: var(--amb); }
+.clb-sub { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em; color: var(--dim); margin-top: 2px; }
+.clb-brier { font-family: var(--mono); font-size: 13px; color: var(--hi); text-align: right; white-space: nowrap; }
+.clb-brier small { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+.cboard .foot {
+  display: block; padding: 10px 14px; border-top: 1px solid var(--line-hi);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--amb);
+}
+.cboard .foot:hover { color: var(--hi); }
+
+/* ---- composer: claim a handle, then post a thesis ---- */
+.composer {
+  border: 1px solid var(--line-hi); border-left: 2px solid var(--amb);
+  background: var(--bg-panel); padding: 16px 18px; margin: 14px 0;
+}
+.handle-gate { border: 1px solid var(--line); background: var(--bg); padding: 14px 16px; }
+.handle-gate p { margin: 0 0 6px; color: var(--dim); font-size: 12.5px; }
+.composer-error { color: var(--red); font-family: var(--mono); font-size: 12px; margin: 10px 0 0; }
+
+/* ---- community: remaining hooks ---- */
+.thesis-title { font-size: 13.5px; color: var(--hi); margin: 6px 0 0; }
+.discuss { text-decoration: none; }
+.discuss:hover { border-color: var(--amb-dim); color: var(--amb); }
+.tf-group { display: inline-flex; gap: 8px; }
+.thesis-comments { border-top: 1px solid var(--line); padding: 10px 15px; }
+.thesis-comments > .tf { margin: 0; }
+.thread { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.thread .comment { font-size: 13px; margin: 0; color: var(--txt); }
+.thread .prompt-box { margin-top: 6px; }
+.floor-foot { margin: 12px 0 0; }
+.link-inline {
+  margin: 0; padding: 0; background: none; border: 0; cursor: pointer;
+  font-family: var(--mono); font-size: inherit; letter-spacing: inherit; text-transform: none;
+  color: var(--amb);
+}
+.link-inline:hover { background: none; color: var(--hi); }
+.clb-empty {
+  padding: 14px; font-family: var(--mono); font-size: 12px; color: var(--dim);
+  border-bottom: 1px solid var(--line);
+}
+.clb-id { min-width: 0; }
+.clb-brier b { font-weight: 500; }
+.clb-brier-lbl {
+  display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--dim);
+}

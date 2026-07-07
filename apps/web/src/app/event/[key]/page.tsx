@@ -74,12 +74,6 @@ export default function EventPage() {
       ? [edge.listing, ...eventMarkets]
       : eventMarkets;
 
-  const outcomeOptions = tableMarkets.map((l) => ({
-    label: l.outcome ?? l.title,
-    venue: l.venue,
-    price: l.yesPrice
-  }));
-
   return (
     <div>
       <p className="muted">
@@ -253,7 +247,7 @@ export default function EventPage() {
         <NarrativeAnalysis match={match} />
       </div>
 
-      <ThesisSection eventKey={eventKey} outcomeOptions={outcomeOptions} />
+      <ThesisSection eventKey={eventKey} teamA={match.teamA} teamB={match.teamB} />
     </div>
   );
 }

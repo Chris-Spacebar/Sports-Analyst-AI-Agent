@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/", label: "Home" },
   { href: "/picks", label: "Picks" },
   { href: "/track-record", label: "Track record" },
+  { href: "/community", label: "Community" },
   { href: "/markets", label: "Live prices" }
 ];
 

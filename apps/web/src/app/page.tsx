@@ -12,8 +12,7 @@ import {
 } from "@/lib/reports";
 import Scorecard from "@/components/Scorecard";
 import EventCard from "@/components/EventCard";
-import { ThesisCard } from "@/components/ThesisSection";
-import { localThesisRepository, type Thesis } from "@/lib/thesisStore";
+import CommunityFloor from "@/components/community/CommunityFloor";
 import { useLiveListings } from "@/lib/useLiveListings";
 import { edgeFor } from "@/lib/edge";
 import { cents, pct } from "@/lib/format";
@@ -27,16 +26,10 @@ const prob = (m: ReportMatch): string => {
 export default function Home() {
   const overall = overallScorecard();
   const report = REPORTS[0];
-  const [latestTheses, setLatestTheses] = useState<Thesis[]>([]);
   const [now, setNow] = useState<Date | null>(null);
   const { listings } = useLiveListings();
 
   useEffect(() => setNow(new Date()), []);
-
-  // localStorage is browser-only; read after mount.
-  useEffect(() => {
-    setLatestTheses(localThesisRepository.listTheses().slice(0, 3));
-  }, []);
 
   const played = report.matches.filter((m) => matchState(m, now) === "played");
   const settledMatches = report.matches.filter((m) => m.result.settled);
@@ -182,6 +175,8 @@ export default function Home() {
         )}
       </Link>
 
+      <CommunityFloor />
+
       <div className="card">
         <h2>Track record: every pick graded when the market settles</h2>
         <p>
@@ -215,21 +210,6 @@ export default function Home() {
           <Link href="/picks">All picks →</Link> · <Link href="/markets">Live prices →</Link>
         </p>
       </div>
-
-      {latestTheses.length > 0 && (
-        <div className="card">
-          <h2>Latest community theses</h2>
-          {latestTheses.map((t) => (
-            <ThesisCard key={t.id} t={t} />
-          ))}
-        </div>
-      )}
-      {latestTheses.length === 0 && (
-        <p className="muted">
-          Have a read on one of these matches? Open an <Link href="/picks">event</Link> and publish
-          your thesis.
-        </p>
-      )}
     </div>
   );
 }

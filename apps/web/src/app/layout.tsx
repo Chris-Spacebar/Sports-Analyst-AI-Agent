@@ -3,6 +3,7 @@ import "./globals.css";
 import WalletConnect from "@/components/WalletConnect";
 import NavLinks from "@/components/NavLinks";
 import { SITE_META, overallScorecard } from "@/lib/reports";
+import CommunityCount from "@/components/community/CommunityCount";
 
 export const metadata: Metadata = {
   title: "Sports Analyst AI Agent",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span>
               <span className="dot" />
               Research desk · results updated {SITE_META.resultsUpdatedAt}
+              <CommunityCount />
             </span>
             <span>
               {overall.totalPicks} picks published · {overall.pending} pending
