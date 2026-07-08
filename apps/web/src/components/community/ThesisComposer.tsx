@@ -1,32 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { REPORTS } from "@/lib/reports";
-import { postThesis } from "@/lib/community/client";
+import { getEvent, sportTree, type ReportMatch } from "@/lib/reports";
+import { sportLabel } from "@/lib/format";
+import { postThesis, type FloorThesis } from "@/lib/community/client";
+import { gradeThesis, housePickFor } from "@/lib/community/grade";
 import { useIdentity } from "@/lib/community/identity";
+import ThesisRow from "./ThesisRow";
 
-const NO_PICK = "__note__";
+type Call = "A" | "B" | "none";
 
-interface EventOption {
-  eventKey: string;
-  matchup: string;
-  teamA: string;
-  teamB: string;
-}
+const clampProb = (raw: string): number => {
+  const n = Math.round(Number(raw));
+  if (!Number.isFinite(n)) return 60;
+  return Math.min(99, Math.max(1, n));
+};
 
-const EVENT_OPTIONS: EventOption[] = REPORTS.flatMap((r) =>
-  r.matches.map((m) => ({
-    eventKey: m.eventKey,
-    matchup: m.matchup,
-    teamA: m.teamA,
-    teamB: m.teamB
-  }))
-);
+/** Default to the first match still open, so a fresh call is not on a finished game. */
+const firstOpen = (matches?: ReportMatch[]): ReportMatch | undefined =>
+  matches?.find((m) => !m.result.settled) ?? matches?.[0];
 
 export default function ThesisComposer({
   eventKey,
-  teamA,
-  teamB,
   onPosted
 }: {
   eventKey?: string;
@@ -35,46 +30,98 @@ export default function ThesisComposer({
   onPosted: () => void;
 }) {
   const { deviceId, handle, ready, claim } = useIdentity();
+  const tree = useMemo(() => sportTree(), []);
+
+  // On an event page the match is fixed; on the floor the user picks it via the
+  // sport, competition, match cascade.
+  const fixed = eventKey ? getEvent(eventKey) : undefined;
+  const fixedSport = fixed?.report.sport;
+  const fixedCompetition = fixed?.report.competition;
 
   const [handleInput, setHandleInput] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState(
-    eventKey ?? EVENT_OPTIONS[0]?.eventKey ?? ""
+  const [sportKey, setSportKey] = useState(fixedSport ?? tree[0]?.sport ?? "");
+  const [competition, setCompetition] = useState(
+    fixedCompetition ?? tree[0]?.competitions[0]?.competition ?? ""
   );
-  const [outcome, setOutcome] = useState<string>(NO_PICK);
-  const [side, setSide] = useState<"YES" | "NO">("YES");
+  const [matchKey, setMatchKey] = useState(
+    eventKey ?? firstOpen(tree[0]?.competitions[0]?.matches)?.eventKey ?? ""
+  );
+  const [call, setCall] = useState<Call>("A");
   const [probability, setProbability] = useState("60");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeEvent = useMemo(() => {
-    const key = eventKey ?? selectedEvent;
-    const opt = EVENT_OPTIONS.find((e) => e.eventKey === key);
-    if (opt) return opt;
-    if (eventKey && teamA && teamB) {
-      return { eventKey, matchup: `${teamA} vs ${teamB}`, teamA, teamB };
-    }
-    return null;
-  }, [eventKey, selectedEvent, teamA, teamB]);
+  const sportGroup = tree.find((s) => s.sport === sportKey) ?? tree[0];
+  const compGroup =
+    sportGroup?.competitions.find((c) => c.competition === competition) ??
+    sportGroup?.competitions[0];
+  const activeMatch =
+    (eventKey ? fixed?.match : undefined) ??
+    compGroup?.matches.find((m) => m.eventKey === matchKey) ??
+    compGroup?.matches[0];
+
+  const onSport = (next: string) => {
+    setSportKey(next);
+    const g = tree.find((s) => s.sport === next);
+    const firstComp = g?.competitions[0];
+    setCompetition(firstComp?.competition ?? "");
+    setMatchKey(firstOpen(firstComp?.matches)?.eventKey ?? "");
+  };
+  const onCompetition = (next: string) => {
+    setCompetition(next);
+    const c = sportGroup?.competitions.find((x) => x.competition === next);
+    setMatchKey(firstOpen(c?.matches)?.eventKey ?? "");
+  };
+
+  const targetKey = eventKey ?? activeMatch?.eventKey ?? "";
+  const outcome =
+    call === "none" || !activeMatch
+      ? null
+      : call === "A"
+        ? activeMatch.teamA
+        : activeMatch.teamB;
+
+  // Live preview: the exact row the floor will render, so the questions map
+  // one to one onto the result. Probability is clamped so a mid-edit value
+  // never shows as NaN.
+  const previewPick =
+    outcome && targetKey
+      ? { eventKey: targetKey, outcome, side: "YES" as const, probability: clampProb(probability) / 100 }
+      : undefined;
+  const preview: FloorThesis = {
+    id: "preview",
+    eventKey: targetKey,
+    authorId: deviceId || "you",
+    handle: handle || "@you",
+    title: title.trim() || "Your headline",
+    body: body.trim() || "Your rationale will show here.",
+    createdAt: new Date().toISOString(),
+    pick: previewPick,
+    tail: 0,
+    fade: 0,
+    commentCount: 0,
+    your: null,
+    graded: gradeThesis({ eventKey: targetKey, pick: previewPick }),
+    house: previewPick ? housePickFor(targetKey) : null
+  };
 
   if (!ready) {
-    return <div className="composer">Loading…</div>;
+    return <div className="composer">Loading...</div>;
   }
 
   if (!handle) {
     const claimHandle = () => {
       const h = handleInput.trim();
       if (!h) return;
-      claim(h);
+      claim(h.startsWith("@") ? h : `@${h}`);
     };
     return (
       <div className="composer">
         <div className="handle-gate">
           <label>Claim a handle</label>
-          <p className="sub">
-            Pick a handle to post under. No password: it lives on this device.
-          </p>
+          <p className="sub">Pick a handle to post under. No password: it lives on this device.</p>
           <input
             value={handleInput}
             onChange={(e) => setHandleInput(e.target.value)}
@@ -95,13 +142,12 @@ export default function ThesisComposer({
     setError(null);
     const trimmedTitle = title.trim();
     const trimmedBody = body.trim();
-    const targetEvent = eventKey ?? selectedEvent;
-    if (!targetEvent) {
-      setError("Pick an event.");
+    if (!targetKey) {
+      setError("Pick a match.");
       return;
     }
     if (!trimmedTitle) {
-      setError("Add a title.");
+      setError("Add a headline.");
       return;
     }
     if (!trimmedBody) {
@@ -109,25 +155,15 @@ export default function ThesisComposer({
       return;
     }
 
-    let pick;
-    if (outcome !== NO_PICK) {
-      const p = Number(probability);
-      if (!Number.isFinite(p) || p < 1 || p > 99) {
-        setError("Probability must be between 1 and 99.");
-        return;
-      }
-      pick = {
-        eventKey: targetEvent,
-        outcome,
-        side,
-        probability: p / 100
-      };
-    }
+    const pick =
+      outcome && targetKey
+        ? { eventKey: targetKey, outcome, side: "YES" as const, probability: clampProb(probability) / 100 }
+        : undefined;
 
     setPosting(true);
     try {
       await postThesis({
-        eventKey: targetEvent,
+        eventKey: targetKey,
         authorId: deviceId,
         handle,
         title: trimmedTitle,
@@ -136,7 +172,7 @@ export default function ThesisComposer({
       });
       setTitle("");
       setBody("");
-      setOutcome(NO_PICK);
+      setCall("A");
       setProbability("60");
       onPosted();
     } catch (err) {
@@ -148,53 +184,60 @@ export default function ThesisComposer({
 
   return (
     <div className="composer">
-      {!eventKey && (
+      {eventKey ? (
         <>
-          <label>Event</label>
-          <select
-            value={selectedEvent}
-            onChange={(e) => {
-              setSelectedEvent(e.target.value);
-              setOutcome(NO_PICK);
-            }}
-          >
-            {EVENT_OPTIONS.map((o) => (
-              <option key={o.eventKey} value={o.eventKey}>
-                {o.matchup}
-              </option>
-            ))}
-          </select>
+          <label>Match</label>
+          <p className="composer-fixed">
+            {activeMatch?.matchup}
+            {fixedSport ? ` · ${sportLabel(fixedSport)}` : ""}
+            {fixedCompetition ? ` · ${fixedCompetition}` : ""}
+          </p>
         </>
+      ) : (
+        <div className="composer-cascade">
+          <div>
+            <label>Sport</label>
+            <select value={sportKey} onChange={(e) => onSport(e.target.value)}>
+              {tree.map((s) => (
+                <option key={s.sport} value={s.sport}>
+                  {sportLabel(s.sport)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label>Event</label>
+            <select value={competition} onChange={(e) => onCompetition(e.target.value)}>
+              {sportGroup?.competitions.map((c) => (
+                <option key={c.competition} value={c.competition}>
+                  {c.competition}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label>Match</label>
+            <select value={matchKey} onChange={(e) => setMatchKey(e.target.value)}>
+              {compGroup?.matches.map((m) => (
+                <option key={m.eventKey} value={m.eventKey}>
+                  {m.matchup}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       )}
 
-      <label>Your pick</label>
-      <select value={outcome} onChange={(e) => setOutcome(e.target.value)}>
-        <option value={NO_PICK}>General note (no pick)</option>
-        {activeEvent && (
-          <>
-            <option value={activeEvent.teamA}>{activeEvent.teamA} to advance</option>
-            <option value={activeEvent.teamB}>{activeEvent.teamB} to advance</option>
-          </>
-        )}
+      <label>Your call</label>
+      <select value={call} onChange={(e) => setCall(e.target.value as Call)}>
+        {activeMatch && <option value="A">{activeMatch.teamA} to advance</option>}
+        {activeMatch && <option value="B">{activeMatch.teamB} to advance</option>}
+        <option value="none">Just a note (no pick)</option>
       </select>
 
-      {outcome !== NO_PICK && (
+      {call !== "none" && (
         <>
-          <label>Side</label>
-          <div className="side-toggle">
-            {(["YES", "NO"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={side === s ? "side-btn active" : "side-btn"}
-                onClick={() => setSide(s)}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          <label>Your probability (1-99%)</label>
+          <label>Your probability that {outcome} advances</label>
           <input
             type="number"
             min={1}
@@ -205,7 +248,7 @@ export default function ThesisComposer({
         </>
       )}
 
-      <label>Title</label>
+      <label>Headline</label>
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -214,16 +257,22 @@ export default function ThesisComposer({
 
       <label>Rationale</label>
       <textarea
+        className="prompt-box"
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        placeholder="Why do you like it?"
+        placeholder="Form, availability, tactics, venue, why the number is what it is."
         rows={4}
       />
+
+      <span className="composer-preview-label">How it appears on the floor</span>
+      <div className="composer-preview">
+        <ThesisRow thesis={preview} onReact={() => undefined} />
+      </div>
 
       {error && <p className="composer-error">{error}</p>}
 
       <button type="button" className="button-link" onClick={submit} disabled={posting}>
-        {posting ? "Posting…" : "Post thesis"}
+        {posting ? "Posting..." : "Post thesis"}
       </button>
     </div>
   );

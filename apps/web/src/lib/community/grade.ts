@@ -7,14 +7,13 @@ import type { CommunityPick, CommunityThesis, ForecasterStat, GradedResult } fro
  * other outcome (a free-form note, a prop the report does not settle) stays
  * ungraded.
  */
-export function gradeThesis(t: { eventKey: string; pick?: CommunityPick }): GradedResult {
-  const pick = t.pick;
-  if (!pick) return { settled: false, gradeable: false };
+/** Pure grading of a pick against a known match result (no data lookup). */
+export function gradePick(
+  pick: CommunityPick | undefined,
+  match: { teamA: string; teamB: string; result: { settled: boolean; winner?: string } } | undefined
+): GradedResult {
+  if (!pick || !match) return { settled: false, gradeable: false };
 
-  const event = getEvent(t.eventKey);
-  if (!event) return { settled: false, gradeable: false };
-
-  const { match } = event;
   const outcome = pick.outcome.toLowerCase();
   const namesTeam = outcome === match.teamA.toLowerCase() || outcome === match.teamB.toLowerCase();
   if (!namesTeam) return { settled: false, gradeable: false };
@@ -27,6 +26,10 @@ export function gradeThesis(t: { eventKey: string; pick?: CommunityPick }): Grad
   const hit = pick.side === "YES" ? yesHappened : !yesHappened;
   const brier = (pick.probability - (hit ? 1 : 0)) ** 2;
   return { settled: true, gradeable: true, hit, brier };
+}
+
+export function gradeThesis(t: { eventKey: string; pick?: CommunityPick }): GradedResult {
+  return gradePick(t.pick, getEvent(t.eventKey)?.match);
 }
 
 /**
@@ -47,7 +50,17 @@ export function housePickFor(eventKey: string): { winner: string; probability: n
  * settled Brier rank first (lower is better); rows carrying only pending picks
  * trail behind, and rows with nothing gradeable sit last.
  */
-export function computeForecasters(theses: CommunityThesis[]): ForecasterStat[] {
+/**
+ * Pure roll-up: group theses by author, grade each with the injected grader,
+ * append the pre-built house row, then rank. Rows with a settled Brier rank
+ * first (lower is better); rows carrying only pending picks trail, and rows
+ * with nothing gradeable sit last.
+ */
+export function rollUpForecasters(
+  theses: CommunityThesis[],
+  grade: (t: CommunityThesis) => GradedResult,
+  house: ForecasterStat
+): ForecasterStat[] {
   const byAuthor = new Map<string, CommunityThesis[]>();
   for (const t of theses) {
     const list = byAuthor.get(t.authorId);
@@ -63,7 +76,7 @@ export function computeForecasters(theses: CommunityThesis[]): ForecasterStat[] 
     let brierSum = 0;
     let brierN = 0;
     for (const t of list) {
-      const g = gradeThesis(t);
+      const g = grade(t);
       if (!g.gradeable) continue;
       if (!g.settled) {
         pending += 1;
@@ -86,16 +99,7 @@ export function computeForecasters(theses: CommunityThesis[]): ForecasterStat[] 
     });
   }
 
-  const desk = overallScorecard();
-  rows.push({
-    handle: "the desk",
-    authorId: "house",
-    settled: desk.settled,
-    correct: desk.correct,
-    pending: desk.pending,
-    brier: desk.brierScore,
-    isHouse: true
-  });
+  rows.push(house);
 
   rows.sort((a, b) => {
     if (a.brier != null && b.brier != null) return a.brier - b.brier;
@@ -107,4 +111,22 @@ export function computeForecasters(theses: CommunityThesis[]): ForecasterStat[] 
   });
 
   return rows;
+}
+
+/** The house scored on its published track record, as one leaderboard row. */
+export function housePick(): ForecasterStat {
+  const desk = overallScorecard();
+  return {
+    handle: "the desk",
+    authorId: "house",
+    settled: desk.settled,
+    correct: desk.correct,
+    pending: desk.pending,
+    brier: desk.brierScore,
+    isHouse: true
+  };
+}
+
+export function computeForecasters(theses: CommunityThesis[]): ForecasterStat[] {
+  return rollUpForecasters(theses, gradeThesis, housePick());
 }

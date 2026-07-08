@@ -1522,7 +1522,8 @@
    ],
    "eventKey": "wc2026-r16-egypt-argentina",
    "result": {
-    "settled": false
+    "settled": true,
+    "winner": "Argentina"
    }
   },
   {
@@ -1734,7 +1735,8 @@
    ],
    "eventKey": "wc2026-r16-switzerland-colombia",
    "result": {
-    "settled": false
+    "settled": true,
+    "winner": "Switzerland"
    }
   }
  ]

@@ -130,9 +130,9 @@ export function communitySeed(): CommunityData {
       authorId: "dev_sharpe_ratio",
       handle: "@sharpe_ratio",
       title: "Fading the home story",
-      body: "Everyone is on the co-host fairytale. I am on the other side: Canada do NOT advance. Higher quality, semi-home crowd in Houston, perfect shootout record for Morocco.",
+      body: "Everyone is on the co-host fairytale. I am on Morocco: more quality in every line, a semi-home crowd in Houston, and a perfect shootout record. Morocco advance.",
       createdAt: "2026-07-05T17:25:00.000Z",
-      pick: { eventKey: "wc2026-r16-canada-morocco", outcome: "Canada", side: "NO", probability: 0.58 },
+      pick: { eventKey: "wc2026-r16-canada-morocco", outcome: "Morocco", side: "YES", probability: 0.58 },
       tail: 0,
       fade: 0,
       commentCount: 0

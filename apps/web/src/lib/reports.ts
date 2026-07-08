@@ -69,6 +69,40 @@ export const getEvent = (
   return undefined;
 };
 
+export interface CompetitionGroup {
+  competition: string;
+  matches: ReportMatch[];
+}
+export interface SportGroup {
+  /** Internal sport key (e.g. "soccer"); display with sportLabel(). */
+  sport: string;
+  competitions: CompetitionGroup[];
+}
+
+/**
+ * Reports grouped sport, then competition, then match, for cascading pickers
+ * (choose a sport, then an event/competition, then the match). Extends for free
+ * as new reports arrive: basketball with NBA and FIBA World Cup would appear as
+ * one sport with two competitions the moment those reports exist.
+ */
+export function sportTree(reports: Report[] = REPORTS): SportGroup[] {
+  const bySport = new Map<string, Map<string, ReportMatch[]>>();
+  for (const r of reports) {
+    let comps = bySport.get(r.sport);
+    if (!comps) {
+      comps = new Map();
+      bySport.set(r.sport, comps);
+    }
+    const existing = comps.get(r.competition);
+    if (existing) existing.push(...r.matches);
+    else comps.set(r.competition, [...r.matches]);
+  }
+  return [...bySport.entries()].map(([sport, comps]) => ({
+    sport,
+    competitions: [...comps.entries()].map(([competition, matches]) => ({ competition, matches }))
+  }));
+}
+
 export interface Scorecard {
   totalPicks: number;
   settled: number;

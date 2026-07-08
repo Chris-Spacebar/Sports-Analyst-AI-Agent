@@ -1,104 +1,118 @@
 import { describe, expect, it } from "vitest";
-import { computeForecasters, gradeThesis, housePickFor } from "@/lib/community/grade";
-import type { CommunityThesis, CommunityPick } from "@/lib/community/types";
+import {
+  computeForecasters,
+  gradePick,
+  gradeThesis,
+  housePick,
+  housePickFor,
+  rollUpForecasters
+} from "@/lib/community/grade";
+import { overallScorecard } from "@/lib/reports";
+import type { CommunityThesis, CommunityPick, GradedResult } from "@/lib/community/types";
 
-// Settled report facts these fixtures lean on (wc2026 Round of 16):
-//   canada-morocco   winner Morocco   house 62%
-//   france-paraguay  winner France    house 85%
-//   brazil-norway    winner Norway    house 58%
-//   mexico-england   winner England   house 52%
-//   spain-portugal   winner Spain     house 64%
-//   belgium-usa      winner Belgium   house 54%
-//   egypt-argentina  UNSETTLED        house 80% (Argentina)
-//   switzerland-colombia UNSETTLED    house 55% (Colombia)
-
-function thesis(eventKey: string, pick?: CommunityPick, over: Partial<CommunityThesis> = {}): CommunityThesis {
-  return {
-    id: over.id ?? `t_${eventKey}_${pick?.outcome ?? "note"}`,
-    eventKey,
-    authorId: over.authorId ?? "dev_x",
-    handle: over.handle ?? "@x",
-    title: "t",
-    body: "b",
-    createdAt: over.createdAt ?? "2026-07-06T00:00:00.000Z",
-    pick,
-    tail: 0,
-    fade: 0,
-    commentCount: 0
-  };
-}
-
-const pick = (eventKey: string, outcome: string, side: "YES" | "NO", probability: number): CommunityPick => ({
-  eventKey,
+const P = (outcome: string, side: "YES" | "NO", probability: number): CommunityPick => ({
+  eventKey: "e",
   outcome,
   side,
   probability
 });
 
-describe("gradeThesis", () => {
+const mkMatch = (teamA: string, teamB: string, result: { settled: boolean; winner?: string }) => ({
+  teamA,
+  teamB,
+  result
+});
+
+// gradePick is the pure core: fixtures only, so settling real results never
+// breaks it. gradeThesis just wires it to live report data (tested below).
+describe("gradePick", () => {
+  const match = mkMatch("Spain", "Portugal", { settled: true, winner: "Spain" });
+
   it("is not gradeable without a pick", () => {
-    expect(gradeThesis({ eventKey: "wc2026-r16-spain-portugal" })).toEqual({
-      settled: false,
-      gradeable: false
-    });
+    expect(gradePick(undefined, match)).toEqual({ settled: false, gradeable: false });
   });
 
-  it("is not gradeable when the outcome names no team in the event", () => {
-    const t = thesis("wc2026-r16-canada-morocco", pick("wc2026-r16-canada-morocco", "Spain", "YES", 0.6));
-    expect(gradeThesis(t)).toEqual({ settled: false, gradeable: false });
+  it("is not gradeable without a match", () => {
+    expect(gradePick(P("Spain", "YES", 0.7), undefined)).toEqual({ settled: false, gradeable: false });
   });
 
-  it("is not gradeable for an unknown event key", () => {
-    const t = thesis("nope", pick("nope", "Spain", "YES", 0.6));
-    expect(gradeThesis(t)).toEqual({ settled: false, gradeable: false });
+  it("is not gradeable when the outcome names no team in the match", () => {
+    expect(gradePick(P("France", "YES", 0.6), match)).toEqual({ settled: false, gradeable: false });
   });
 
-  it("is gradeable but unsettled for an upcoming event", () => {
-    const t = thesis(
-      "wc2026-r16-egypt-argentina",
-      pick("wc2026-r16-egypt-argentina", "Argentina", "YES", 0.78)
-    );
-    expect(gradeThesis(t)).toEqual({ settled: false, gradeable: true });
+  it("is gradeable but unsettled when the match has no result yet", () => {
+    const open = mkMatch("Egypt", "Argentina", { settled: false });
+    expect(gradePick(P("Argentina", "YES", 0.78), open)).toEqual({ settled: false, gradeable: true });
   });
 
   it("grades a settled YES pick that hits", () => {
-    const t = thesis("wc2026-r16-spain-portugal", pick("wc2026-r16-spain-portugal", "Spain", "YES", 0.7));
-    const g = gradeThesis(t);
-    expect(g.settled).toBe(true);
-    expect(g.gradeable).toBe(true);
-    expect(g.hit).toBe(true);
+    const g = gradePick(P("Spain", "YES", 0.7), match);
+    expect(g).toMatchObject({ settled: true, gradeable: true, hit: true });
     expect(g.brier).toBeCloseTo(0.09, 10);
   });
 
   it("grades a settled YES pick that misses", () => {
-    const t = thesis("wc2026-r16-brazil-norway", pick("wc2026-r16-brazil-norway", "Brazil", "YES", 0.7));
-    const g = gradeThesis(t);
-    expect(g.settled).toBe(true);
+    const g = gradePick(P("Portugal", "YES", 0.7), match);
     expect(g.hit).toBe(false);
     expect(g.brier).toBeCloseTo(0.49, 10);
   });
 
-  it("grades a settled NO pick that hits (backing a team to NOT advance)", () => {
-    // Canada did not advance (Morocco won), so NO on Canada is correct.
-    const t = thesis("wc2026-r16-canada-morocco", pick("wc2026-r16-canada-morocco", "Canada", "NO", 0.58));
-    const g = gradeThesis(t);
+  it("grades a settled NO pick that hits (backing a team to not advance)", () => {
+    const g = gradePick(P("Portugal", "NO", 0.58), match);
     expect(g.hit).toBe(true);
     expect(g.brier).toBeCloseTo(0.1764, 10);
   });
 
   it("grades a settled NO pick that misses", () => {
-    // Spain advanced, so NO on Spain is wrong.
-    const t = thesis("wc2026-r16-spain-portugal", pick("wc2026-r16-spain-portugal", "Spain", "NO", 0.3));
-    const g = gradeThesis(t);
+    const g = gradePick(P("Spain", "NO", 0.3), match);
     expect(g.hit).toBe(false);
     expect(g.brier).toBeCloseTo(0.09, 10);
   });
 
   it("matches the outcome team case-insensitively", () => {
-    const t = thesis("wc2026-r16-spain-portugal", pick("wc2026-r16-spain-portugal", "spain", "YES", 0.7));
-    const g = gradeThesis(t);
+    const g = gradePick(P("spain", "YES", 0.7), match);
     expect(g.gradeable).toBe(true);
     expect(g.hit).toBe(true);
+  });
+});
+
+// Integration: gradeThesis delegates to gradePick over live report data. These
+// lean only on permanently-settled Round of 16 facts (Spain advanced, Brazil
+// did not), which do not change once graded.
+describe("gradeThesis", () => {
+  const thesis = (eventKey: string, pick?: CommunityPick): CommunityThesis => ({
+    id: "t",
+    eventKey,
+    authorId: "a",
+    handle: "@a",
+    title: "t",
+    body: "b",
+    createdAt: "2026-07-06T00:00:00.000Z",
+    pick,
+    tail: 0,
+    fade: 0,
+    commentCount: 0
+  });
+
+  it("is not gradeable for an unknown event key", () => {
+    expect(gradeThesis(thesis("nope", { eventKey: "nope", outcome: "Spain", side: "YES", probability: 0.6 }))).toEqual({
+      settled: false,
+      gradeable: false
+    });
+  });
+
+  it("grades a hit against a settled event", () => {
+    const g = gradeThesis(
+      thesis("wc2026-r16-spain-portugal", { eventKey: "wc2026-r16-spain-portugal", outcome: "Spain", side: "YES", probability: 0.7 })
+    );
+    expect(g).toMatchObject({ settled: true, gradeable: true, hit: true });
+  });
+
+  it("grades a miss against a settled event", () => {
+    const g = gradeThesis(
+      thesis("wc2026-r16-brazil-norway", { eventKey: "wc2026-r16-brazil-norway", outcome: "Brazil", side: "YES", probability: 0.7 })
+    );
+    expect(g).toMatchObject({ settled: true, gradeable: true, hit: false });
   });
 });
 
@@ -107,81 +121,90 @@ describe("housePickFor", () => {
     expect(housePickFor("wc2026-r16-canada-morocco")).toEqual({ winner: "Morocco", probability: 0.62 });
   });
 
-  it("returns the desk pick for an upcoming event", () => {
-    expect(housePickFor("wc2026-r16-egypt-argentina")).toEqual({ winner: "Argentina", probability: 0.8 });
-  });
-
   it("returns null for an unknown event", () => {
     expect(housePickFor("nope")).toBeNull();
   });
 });
 
-describe("computeForecasters", () => {
-  const sharp = [
-    thesis("wc2026-r16-spain-portugal", pick("wc2026-r16-spain-portugal", "Spain", "YES", 0.7), {
-      authorId: "dev_sharp",
-      handle: "@sharp"
-    }),
-    thesis("wc2026-r16-canada-morocco", pick("wc2026-r16-canada-morocco", "Morocco", "YES", 0.65), {
-      authorId: "dev_sharp",
-      handle: "@sharp"
-    }),
-    thesis("wc2026-r16-france-paraguay", pick("wc2026-r16-france-paraguay", "France", "YES", 0.8), {
-      authorId: "dev_sharp",
-      handle: "@sharp"
-    })
-  ];
-  const weak = [
-    thesis("wc2026-r16-brazil-norway", pick("wc2026-r16-brazil-norway", "Brazil", "YES", 0.7), {
-      authorId: "dev_weak",
-      handle: "@weak"
-    }),
-    thesis("wc2026-r16-mexico-england", pick("wc2026-r16-mexico-england", "Mexico", "YES", 0.6), {
-      authorId: "dev_weak",
-      handle: "@weak"
-    })
-  ];
-  const pend = [
-    thesis("wc2026-r16-egypt-argentina", pick("wc2026-r16-egypt-argentina", "Argentina", "YES", 0.78), {
-      authorId: "dev_pend",
-      handle: "@pend"
-    })
-  ];
-  const idle = [
-    thesis("wc2026-r16-spain-portugal", undefined, { authorId: "dev_idle", handle: "@idle", id: "idle_note" }),
-    thesis("wc2026-r16-canada-morocco", pick("wc2026-r16-canada-morocco", "Nowhere", "YES", 0.5), {
-      authorId: "dev_idle",
-      handle: "@idle",
-      id: "idle_bad"
-    })
-  ];
-
-  const rows = computeForecasters([...sharp, ...weak, ...pend, ...idle]);
-
-  it("aggregates settled, correct, pending and mean Brier per author", () => {
-    const bySharp = rows.find((r) => r.authorId === "dev_sharp")!;
-    expect(bySharp).toMatchObject({ handle: "@sharp", settled: 3, correct: 3, pending: 0 });
-    expect(bySharp.brier).toBe(0.084);
-
-    const byWeak = rows.find((r) => r.authorId === "dev_weak")!;
-    expect(byWeak).toMatchObject({ settled: 2, correct: 0, pending: 0 });
-    expect(byWeak.brier).toBe(0.425);
-
-    const byPend = rows.find((r) => r.authorId === "dev_pend")!;
-    expect(byPend).toMatchObject({ settled: 0, correct: 0, pending: 1, brier: null });
-
-    const byIdle = rows.find((r) => r.authorId === "dev_idle")!;
-    expect(byIdle).toMatchObject({ settled: 0, correct: 0, pending: 0, brier: null });
+// rollUpForecasters is pure: an injected grader and a pre-built house row, so
+// the aggregation and sort are tested without any live report dependency.
+describe("rollUpForecasters", () => {
+  const th = (id: string, authorId: string, handle: string): CommunityThesis => ({
+    id,
+    eventKey: "e",
+    authorId,
+    handle,
+    title: "t",
+    body: "b",
+    createdAt: "2026-07-06T00:00:00.000Z",
+    tail: 0,
+    fade: 0,
+    commentCount: 0
   });
 
-  it("includes the house as a ranked row", () => {
-    const house = rows.find((r) => r.authorId === "house")!;
-    expect(house).toMatchObject({ handle: "the desk", isHouse: true, settled: 6, correct: 3, pending: 2 });
-    expect(house.brier).toBe(0.199);
+  const graded: Record<string, GradedResult> = {
+    s1: { settled: true, gradeable: true, hit: true, brier: 0.09 },
+    s2: { settled: true, gradeable: true, hit: true, brier: 0.0225 },
+    w1: { settled: true, gradeable: true, hit: false, brier: 0.49 },
+    p1: { settled: false, gradeable: true },
+    i1: { settled: false, gradeable: false }
+  };
+  const grade = (t: CommunityThesis): GradedResult => graded[t.id] ?? { settled: false, gradeable: false };
+
+  const house = {
+    handle: "the desk",
+    authorId: "house",
+    settled: 5,
+    correct: 3,
+    pending: 1,
+    brier: 0.2,
+    isHouse: true
+  };
+
+  const theses = [
+    th("s1", "dev_sharp", "@sharp"),
+    th("s2", "dev_sharp", "@sharp"),
+    th("w1", "dev_weak", "@weak"),
+    th("p1", "dev_pend", "@pend"),
+    th("i1", "dev_idle", "@idle")
+  ];
+  const rows = rollUpForecasters(theses, grade, house);
+
+  it("aggregates settled, correct, pending and mean Brier per author", () => {
+    expect(rows.find((r) => r.authorId === "dev_sharp")).toMatchObject({
+      settled: 2,
+      correct: 2,
+      pending: 0,
+      brier: 0.056
+    });
+    expect(rows.find((r) => r.authorId === "dev_weak")).toMatchObject({ settled: 1, correct: 0, brier: 0.49 });
+    expect(rows.find((r) => r.authorId === "dev_pend")).toMatchObject({ settled: 0, pending: 1, brier: null });
+    expect(rows.find((r) => r.authorId === "dev_idle")).toMatchObject({ settled: 0, pending: 0, brier: null });
+  });
+
+  it("includes the injected house row", () => {
+    expect(rows.find((r) => r.authorId === "house")).toEqual(house);
   });
 
   it("sorts by Brier ascending, then pending-only, then idle rows last", () => {
-    const order = rows.map((r) => r.authorId);
-    expect(order).toEqual(["dev_sharp", "house", "dev_weak", "dev_pend", "dev_idle"]);
+    expect(rows.map((r) => r.authorId)).toEqual(["dev_sharp", "house", "dev_weak", "dev_pend", "dev_idle"]);
+  });
+});
+
+describe("computeForecasters", () => {
+  it("appends the house row scored on the live track record", () => {
+    const house = computeForecasters([]).find((r) => r.isHouse);
+    const desk = overallScorecard();
+    expect(house).toMatchObject({
+      handle: "the desk",
+      settled: desk.settled,
+      correct: desk.correct,
+      pending: desk.pending,
+      brier: desk.brierScore
+    });
+  });
+
+  it("keeps the house row consistent with housePick", () => {
+    expect(computeForecasters([]).find((r) => r.isHouse)).toEqual(housePick());
   });
 });
