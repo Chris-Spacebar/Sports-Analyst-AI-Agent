@@ -24,7 +24,9 @@ export async function GET() {
   });
 
   const enriched = listings
-    .map((l) => ({ ...l, sport: detectSport(l.title) }))
+    // Fall back to the group title: an outcome title is often just a team name
+    // (e.g. Hyperliquid "2026 World Cup Champion: France"), so detect on both.
+    .map((l) => ({ ...l, sport: detectSport(l.title) ?? detectSport(l.group?.title ?? "") }))
     .filter((l) => !l.sport || settings.sportsEnabled.includes(l.sport))
     // Thin-market filter; listings with no depth data at all (e.g. Hyperliquid) are kept.
     .filter((l) => (l.liquidity == null && l.volume == null) || Math.max(l.liquidity ?? 0, l.volume ?? 0) >= settings.minLiquidity)

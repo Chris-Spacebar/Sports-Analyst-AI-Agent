@@ -9,7 +9,7 @@ import ThesisSection from "@/components/ThesisSection";
 import { marketsForEvent, findTeam } from "@/lib/teamMatch";
 import { edgeFor } from "@/lib/edge";
 import { matchState } from "@/lib/kickoff";
-import { pct, cents } from "@/lib/format";
+import { pct, cents, sportLabel } from "@/lib/format";
 import { useLiveListings } from "@/lib/useLiveListings";
 
 export default function EventPage() {
@@ -81,7 +81,7 @@ export default function EventPage() {
       </p>
       <h1>{match.matchup}</h1>
       <div>
-        <span className="tag sport">{report.sport}</span>
+        <span className="tag sport">{sportLabel(report.sport)}</span>
         <span className="tag">{report.competition} · {report.stage}</span>
         <span className="tag">{match.date}</span>
         {state === "settled" ? (

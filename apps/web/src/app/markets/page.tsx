@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { groupListings, type Listing, type MarketGroup } from "@/lib/marketGroups";
 import { researchEventFor } from "@/lib/teamMatch";
-import { pct } from "@/lib/format";
+import { pct, sportLabel } from "@/lib/format";
 
 interface ScanResponse {
   listings: Listing[];
@@ -94,7 +94,7 @@ export default function Dashboard() {
                 >
                   <div>
                     <span className={`tag venue-${g.venue}`}>{g.venue}</span>
-                    {g.sport && <span className="tag sport">{g.sport.replace("_", " ")}</span>}
+                    {g.sport && <span className="tag sport">{sportLabel(g.sport)}</span>}
                     {g.outcomes.length > 1 && <span className="tag">{g.outcomes.length} outcomes</span>}
                   </div>
                   <h2>{g.title}</h2>

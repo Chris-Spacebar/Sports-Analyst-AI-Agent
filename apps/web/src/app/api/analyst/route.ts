@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     "Today is during the 2026 FIFA World Cup Round of 16 window (July 4-7, 2026).",
     "Ground your answer in the research report provided below; be direct, give probabilities where sensible,",
     "explain the key factors (form, availability, tactics, venue, weather, rest), and note uncertainty honestly.",
-    "You cover soccer, NFL, NBA, and MLB. This is analysis for information, not financial advice.",
+    "You cover football, American football, basketball, and baseball. This is analysis for information, not financial advice.",
     "",
     buildContext(prompt, liveOdds)
   ].join("\n");

@@ -6,8 +6,10 @@ export const soccer: SportPlaybook = {
   leagues: ["FIFA World Cup", "Premier League", "Champions League", "La Liga", "MLS"],
   // "fifa world cup"/"club world cup" instead of the bare "world cup": FIBA/Rugby/Cricket
   // World Cup titles must not be classified as soccer. "world cup game" is Kalshi's
-  // series naming for FIFA World Cup fixtures.
-  keywords: ["soccer", "football club", "fifa world cup", "club world cup", "world cup game", "premier league", "champions league", "la liga", "fifa", "mls", "fc", "uefa"],
+  // series naming for FIFA World Cup fixtures; "world cup champion"/"world cup winner"
+  // catch the tournament-winner markets (e.g. Hyperliquid "2026 World Cup Champion").
+  // The rugby/cricket exclude keywords below still veto those tournaments' winner markets.
+  keywords: ["soccer", "football club", "fifa world cup", "club world cup", "world cup game", "world cup champion", "world cup winner", "premier league", "champions league", "la liga", "fifa", "mls", "fc", "uefa"],
   // "premier league" alone also matches Indian Premier League cricket and Premier League
   // Darts; "fc"/"world cup" also surface EA Sports FC esports and world-cup song markets.
   excludeKeywords: ["cricket", "darts", "indian premier league", "esports", "song", "rugby"],

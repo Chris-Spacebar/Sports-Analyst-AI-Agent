@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Listing } from "@/lib/marketGroups";
 import { edgeFor } from "@/lib/edge";
 import { matchState } from "@/lib/kickoff";
-import { pct } from "@/lib/format";
+import { pct, sportLabel } from "@/lib/format";
 import type { ReportMatch } from "@/lib/reports";
 
 /**
@@ -30,7 +30,7 @@ export default function EventCard({
   return (
     <Link href={`/event/${match.eventKey}`} className="card market-card">
       <div>
-        <span className="tag sport">{sport}</span>
+        <span className="tag sport">{sportLabel(sport)}</span>
         {state === "settled" ? (
           hit ? (
             <span className="tag settled">✓ Correct</span>

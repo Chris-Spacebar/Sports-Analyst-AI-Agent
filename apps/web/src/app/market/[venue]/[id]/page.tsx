@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { groupListings, type Listing, type MarketGroup } from "@/lib/marketGroups";
 import { findTeam, researchEventFor } from "@/lib/teamMatch";
-import { pct, cents } from "@/lib/format";
+import { pct, cents, sportLabel } from "@/lib/format";
 import { REPORTS } from "@/lib/reports";
 
 interface PreparedOrder {
@@ -126,7 +126,7 @@ export default function MarketPage() {
       <h1>{group.title}</h1>
       <div>
         <span className={`tag venue-${group.venue}`}>{group.venue}</span>
-        {group.sport && <span className="tag sport">{group.sport.replace("_", " ")}</span>}
+        {group.sport && <span className="tag sport">{sportLabel(group.sport)}</span>}
         <span className="tag">{group.outcomes.length} outcome{group.outcomes.length > 1 ? "s" : ""}</span>
       </div>
       {research && (

@@ -15,7 +15,7 @@ import EventCard from "@/components/EventCard";
 import CommunityFloor from "@/components/community/CommunityFloor";
 import { useLiveListings } from "@/lib/useLiveListings";
 import { edgeFor } from "@/lib/edge";
-import { cents, pct } from "@/lib/format";
+import { cents, pct, sportLabel } from "@/lib/format";
 import { matchState, nextUpcoming, sortForDisplay } from "@/lib/kickoff";
 
 const prob = (m: ReportMatch): string => {
@@ -85,7 +85,7 @@ export default function Home() {
       <div className="section-head">
         <span className="lbl">Featured pick</span>
         <span className="mono muted">
-          {report.sport} · {featuredState === "settled"
+          {sportLabel(report.sport)} · {featuredState === "settled"
             ? `settled ${featured.date}`
             : featuredState === "played"
               ? `played ${featured.date}`
@@ -100,7 +100,7 @@ export default function Home() {
             <div className="blotter-ev">
               {featured.matchup}
               <small>
-                {report.sport} · {featured.date} · {featured.kickoff}
+                {sportLabel(report.sport)} · {featured.date} · {featured.kickoff}
               </small>
             </div>
           </div>
